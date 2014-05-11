@@ -1,0 +1,330 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf6{/* SCI Hardware Initialization and SCI functions for XBee Comms}}}\par\pard
+\cbpat1{{\cf6{Setup all port configurations to use SCI on E{1}{2}{8} */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#include <stdio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <stdlib.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <mc{9}s{1}{2}e{1}{2}{8}.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <S{1}{2}e{1}{2}{8}bits.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <Bin_Const.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <termio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Configure.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Framework.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Timers.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Types.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ADS{1}{2}.H"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"BITDEFS.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#include}} {\cf9{"DEFINITIONS.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"BatteryLvlServo.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"CommandSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"SCI{1}.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"SensingService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"XBeeComSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*---------------------------- Module Variables ---------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{static char}} {\cf2{Xmit_Array}}{\cf11{[}}{\cf2{XMIT_ARR_LEN}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static unsigned char}} {\cf2{Target_Add_H}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static unsigned char}} {\cf2{Target_Add_L}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static char}} {\cf2{POD_Num}} {\cf11{=}} {\cf2{}}{\cf4{{6}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     InitSCI{1}}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Initializes the SCI module on the E{1}{2}{8}}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{InitSCI{1}}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//enable transmit and receive, do not enable any interrupts}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}CR{2}_RE}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//enable receive  -> PS{2}}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}CR{2}_TE}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//enable transmit -> PS{3}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//clear any read data register full flags}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}SR{1}}}{\cf11{;}} {\cf2{}}{\cf5{//read status register}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}DRL}}{\cf11{;}} {\cf2{}}{\cf5{//read data register}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Set Baud Rate to {9}{6}{0}{0} based on {2}{4} MHz clock}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}BDH}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}BDL}} {\cf11{=}} {\cf2{}}{\cf4{{1}{5}{6}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Set initial values into Xmit_Array}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{START_DEL}}{\cf11{]   =}} {\cf2{}}{\cf4{{0}x{7}E}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{LENGTH_H}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{LENGTH_L}}{\cf11{]    =}} {\cf2{XMIT_LENGTH}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{API_ID}}{\cf11{]      =}} {\cf2{}}{\cf4{{0}x{0}{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{FRAME_START}}{\cf11{] =}} {\cf2{}}{\cf4{{0}x{0}{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TARGET_H}}{\cf11{]    =}} {\cf2{Target_Add_H}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TARGET_L}}{\cf11{]    =}} {\cf2{Target_Add_L}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{OPTIONS}}{\cf11{]     =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{CHECKSUM}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     TransmitCommandMessage}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Starts transmission of a command message to the XBee and enables interrupts}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{TransmitCommandMessage}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{START_DEL}}{\cf11{]   =}} {\cf2{}}{\cf4{{0}x{7}E}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{LENGTH_H}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{LENGTH_L}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}x{0}B}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{API_ID}}{\cf11{]      =}} {\cf2{}}{\cf4{{0}x{0}{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TARGET_H}}{\cf11{]    =}} {\cf2{Target_Add_H}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TARGET_L}}{\cf11{]    =}} {\cf2{Target_Add_L}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TYPE}}{\cf11{]        =}} {\cf2{COMMAND}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{CHECKSUM}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}xFF}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Read Status Register}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}SR{1}}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{((}}{\cf2{SCI{1}SR{1}}} {\cf11{&}} {\cf2{BIT{7}HI}}{\cf11{) !=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{)}} {\cf2{}}{\cf5{//transfer data register empty bit {7}}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{// Load the first byte of data into SCI Data Register to transmit}}}\par\pard
+\cbpat1{{\cf2{            SCI{1}DRL}} {\cf11{=}} {\cf2{Xmit_Array}}{\cf11{[}}{\cf2{START_DEL}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// puts("Transmit Command Loaded first byte into SCI{1}DRL. \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Enable Transmit Complete Interrupt}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}CR{2}_TCIE}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     TransmitConnectMessage}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Starts transmission of a connect message to the XBee and enables interrupts}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{TransmitConnectMessage}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{START_DEL}}{\cf11{]   =}} {\cf2{}}{\cf4{{0}x{7}E}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{LENGTH_H}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{LENGTH_L}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}x{0}B}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{API_ID}}{\cf11{]      =}} {\cf2{}}{\cf4{{0}x{0}{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TARGET_H}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}xFF}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TARGET_L}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}xFF}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TYPE}}{\cf11{]        =}} {\cf2{CONNECT}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{DATA_{1}}}{\cf11{]      =}} {\cf2{POD_Num}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{CHECKSUM}}{\cf11{]    =}} {\cf2{}}{\cf4{{0}xFF}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Read Status Register}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}SR{1}}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{((}}{\cf2{SCI{1}SR{1}}} {\cf11{&}} {\cf2{BIT{7}HI}}{\cf11{) !=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{)}} {\cf2{}}{\cf5{//transfer data register empty bit {7}}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{// Load the first byte of data into SCI Data Register to transmit}}}\par\pard
+\cbpat1{{\cf2{            SCI{1}DRL}} {\cf11{=}} {\cf2{Xmit_Array}}{\cf11{[}}{\cf2{START_DEL}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// puts("Transmit Command Loaded first byte into SCI{1}DRL. \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Enable Transmit Complete Interrupt}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}CR{2}_TCIE}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     TransmitDisconnectMessage}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Starts transmission of a disconnect message to the XBee and enables interrupts}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{TransmitDisconnectMessage}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{TYPE}}{\cf11{] =}} {\cf2{DISCONNECT}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{DATA_{1}}}{\cf11{] =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{DATA_{2}}}{\cf11{] =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{DATA_{3}}}{\cf11{] =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{DATA_{4}}}{\cf11{] =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{DATA_{5}}}{\cf11{] =}} {\cf2{}}{\cf4{{0}x{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{CHECKSUM}}{\cf11{] =}} {\cf2{}}{\cf4{{0}xFF}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Load the first byte of data into SCI Data Register to transmit}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}DRL}} {\cf11{=}} {\cf2{Xmit_Array}}{\cf11{[}}{\cf2{START_DEL}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Transmit Disconnect Loaded first byte into SCI{1}DRL.}} {\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Enable Transmit Complete Interrupt}}}\par\pard
+\cbpat1{{\cf2{    SCI{1}CR{2}_TCIE}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     UpdateRoamerAdd}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     Address Byte High, Address Byte Low}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Updates the ROAMER address to communicate between the XBees}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{UpdateRoamerAdd}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{unsigned char}} {\cf2{AddressH}}{\cf11{,}} {\cf2{}}{\cf13{unsigned char}} {\cf2{AddressL}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    Target_Add_H}} {\cf11{=}} {\cf2{AddressH}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    Target_Add_L}} {\cf11{=}} {\cf2{AddressL}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     UpdateXmitArray}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     Xmit_Array element, New Value}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Updates the Xmit_Array element to a new value}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{UpdateXmitArray}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{unsigned char}} {\cf2{Element}}{\cf11{,}} {\cf2{}}{\cf13{unsigned char}} {\cf2{Value}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    Xmit_Array}}{\cf11{[}}{\cf2{Element}}{\cf11{] =}} {\cf2{Value}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     UpdatePodNum}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     NewNum}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Updates the POD_Num with a new value}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{UpdatePodNum}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{unsigned char}} {\cf2{NewNum}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    POD_Num}} {\cf11{=}} {\cf2{NewNum}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     QueryXmit_Array}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     ElementNum}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Returns the value in the array}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{unsigned char}} {\cf2{}}{\cf15{QueryXmitArray}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{ElementNum}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}} {\cf2{Xmit_Array}}{\cf11{[}}{\cf2{ElementNum}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     XmitMsgIR}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Handles all SCI{1} interrupts}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{interrupt VectorNumber_Vsci{1}}} {\cf15{XmitMsgIR}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static char}} {\cf2{counter}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{SCI{1}SR{1}_TC}} {\cf11{==}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{)}} {\cf2{}}{\cf5{//this was a TX Complete Interrupt, send next byte}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{// Clear TC by reading SCI status register {1} (SCISR{1}) with TC set and then writing to SCI data register low (SCIDRL)}}}\par\pard
+\cbpat1{{\cf2{            SCI{1}SR{1}_TC}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            SCI{1}DRL}} {\cf11{=}} {\cf2{Xmit_Array}}{\cf11{[}}{\cf2{counter}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{// Track Checksum when necessary}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{counter}} {\cf11{>}} {\cf2{LENGTH_L}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    Xmit_Array}}{\cf11{[}}{\cf2{CHECKSUM}}{\cf11{] -=}} {\cf2{Xmit_Array}}{\cf11{[}}{\cf2{counter}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{// Increment counter}}}\par\pard
+\cbpat1{{\cf2{            counter}} {\cf11{++;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{counter}} {\cf11{>}} {\cf2{MAX_COUNT}}{\cf11{)}} {\cf2{}}{\cf5{// {1}{1} Bytes transferred before stopping}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    counter}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{                    SCI{1}CR{2}_TCIE}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//disable interrupts for TX}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}{\cf2{}}}\par\pard
+\cbpat1{}}

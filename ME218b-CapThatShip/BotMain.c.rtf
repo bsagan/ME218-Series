@@ -1,0 +1,75 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red51\green00\blue102;\red24\green97\blue167;\red50\green186\blue06;\red00\green102\blue51;\red00\green102\blue51;\red166\green23\blue97;\red83\green116\blue176;\red102\green51\blue00;\red154\green154\blue154;\red85\green85\blue85;\red255\green48\blue48;\red244\green140\blue35;\red00\green00\blue255;\red209\green28\blue237;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf8{#include <stdio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <stdlib.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <mc{9}s{1}{2}e{1}{2}{8}.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <S{1}{2}e{1}{2}{8}bits.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <Bin_Const.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <termio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Configure.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Framework.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Timers.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Types.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{//#include for hardware initialization services}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"E{1}{2}{8}_PWM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"E{1}{2}{8}_SPI.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"E{1}{2}{8}_Servo.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"AlignPPService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ResupplyService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{main}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    ES_Return_t ErrorType}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{//set wireless communication}}}\par\pard
+\cbpat1{{\cf2{    SCI{0}BD}} {\cf11{=}} {\cf2{}}{\cf4{{3}{9}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// When doing testing, it is usefull to annouce just which program}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// is running.}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"running {2}{1}{8}B CapThatShip}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// Your hardware initialization function calls go here}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{InitSPIHardware}}{\cf2{}}{\cf11{();}}      {\cf2{}}{\cf5{//initialize SPI hardware}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{InitServoHardware}}{\cf2{}}{\cf11{();}}    {\cf2{}}{\cf5{//initialize servo hardware for Flywheel ball release}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{InitPWMHardware}}{\cf2{}}{\cf11{();}}      {\cf2{}}{\cf5{//initialize PWM for DriveTrain hardware}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf15{InitIREmitHardware}}{\cf2{}}{\cf11{();}} {\cf2{}}{\cf5{//initialize Timer capabilities IR Emitter for ball refill}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{InitControlTimerHardware}}{\cf2{}}{\cf11{();}} {\cf2{}}{\cf5{//initialize Timer{0} for P-Control}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf5{// now initialize the Events and Services Framework and start it running}}}\par\pard
+\cbpat1{{\cf2{    ErrorType}} {\cf11{=}} {\cf2{}}{\cf15{ES_Initialize}}{\cf2{}}{\cf11{(}}{\cf2{ES_Timer_RATE_{1}MS}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{ErrorType}} {\cf11{==}} {\cf2{Success}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            ErrorType}} {\cf11{=}} {\cf2{}}{\cf15{ES_Run}}{\cf2{}}{\cf11{();}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf5{//if we got to here, there was an error}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{switch}} {\cf2{}}{\cf11{(}}{\cf2{ErrorType}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf12{case}} {\cf2{FailedPointer}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Failed on NULL pointer"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf12{case}} {\cf2{FailedInit}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Failed Initialization"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf12{default}}{\cf2{}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Other Failure"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{    {\cf12{for}} {\cf2{}}{\cf11{(;;)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\};}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*------------------------------- Footnotes -------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*------------------------------ End of file ------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}}

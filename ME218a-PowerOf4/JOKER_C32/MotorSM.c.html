@@ -1,0 +1,303 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>MotorSM.c</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><a name="MotorSM.c_1"></a><span class="hl lin">    1 </span><span class="hl com">/****************************************************************************</span>
+<a name="MotorSM.c_2"></a><span class="hl lin">    2 </span><span class="hl com"> Module</span>
+<a name="MotorSM.c_3"></a><span class="hl lin">    3 </span><span class="hl com">   MotorSM.c</span>
+<a name="MotorSM.c_4"></a><span class="hl lin">    4 </span><span class="hl com"></span>
+<a name="MotorSM.c_5"></a><span class="hl lin">    5 </span><span class="hl com"> Revision</span>
+<a name="MotorSM.c_6"></a><span class="hl lin">    6 </span><span class="hl com">   1.0.1</span>
+<a name="MotorSM.c_7"></a><span class="hl lin">    7 </span><span class="hl com"></span>
+<a name="MotorSM.c_8"></a><span class="hl lin">    8 </span><span class="hl com"> Description</span>
+<a name="MotorSM.c_9"></a><span class="hl lin">    9 </span><span class="hl com">   This is the state machine used to control the state of the motors.</span>
+<a name="MotorSM.c_10"></a><span class="hl lin">   10 </span><span class="hl com"></span>
+<a name="MotorSM.c_11"></a><span class="hl lin">   11 </span><span class="hl com"> Notes</span>
+<a name="MotorSM.c_12"></a><span class="hl lin">   12 </span><span class="hl com"></span>
+<a name="MotorSM.c_13"></a><span class="hl lin">   13 </span><span class="hl com">****************************************************************************/</span>
+<a name="MotorSM.c_14"></a><span class="hl lin">   14 </span><span class="hl com">/*----------------------------- Include Files -----------------------------*/</span>
+<a name="MotorSM.c_15"></a><span class="hl lin">   15 </span><span class="hl com">/* include header files for this state machine as well as any machines at the</span>
+<a name="MotorSM.c_16"></a><span class="hl lin">   16 </span><span class="hl com">   next lower level in the hierarchy that are sub-machines to this machine</span>
+<a name="MotorSM.c_17"></a><span class="hl lin">   17 </span><span class="hl com">*/</span>
+<a name="MotorSM.c_18"></a><span class="hl lin">   18 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Configure.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_19"></a><span class="hl lin">   19 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Framework.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_20"></a><span class="hl lin">   20 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_General.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_21"></a><span class="hl lin">   21 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Events.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_22"></a><span class="hl lin">   22 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_PostList.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_23"></a><span class="hl lin">   23 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;EventCheckers.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_24"></a><span class="hl lin">   24 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Timers.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_25"></a><span class="hl lin">   25 </span><span class="hl ppc">#include &lt;ME218_C32.h&gt;</span>
+<a name="MotorSM.c_26"></a><span class="hl lin">   26 </span><span class="hl ppc">#include &lt;stdio.h&gt;</span>
+<a name="MotorSM.c_27"></a><span class="hl lin">   27 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ADS12.H&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_28"></a><span class="hl lin">   28 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;PWMS12.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_29"></a><span class="hl lin">   29 </span>
+<a name="MotorSM.c_30"></a><span class="hl lin">   30 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;MotorSM.h&quot;</span><span class="hl ppc"></span>
+<a name="MotorSM.c_31"></a><span class="hl lin">   31 </span>
+<a name="MotorSM.c_32"></a><span class="hl lin">   32 </span><span class="hl com">/*----------------------------- Module Defines ----------------------------*/</span>
+<a name="MotorSM.c_33"></a><span class="hl lin">   33 </span><span class="hl ppc">#define REVERSE 4</span>
+<a name="MotorSM.c_34"></a><span class="hl lin">   34 </span><span class="hl ppc">#define FAST 3</span>
+<a name="MotorSM.c_35"></a><span class="hl lin">   35 </span><span class="hl ppc">#define SLOW 2</span>
+<a name="MotorSM.c_36"></a><span class="hl lin">   36 </span><span class="hl ppc">#define START 1</span>
+<a name="MotorSM.c_37"></a><span class="hl lin">   37 </span><span class="hl ppc">#define STOP 0</span>
+<a name="MotorSM.c_38"></a><span class="hl lin">   38 </span>
+<a name="MotorSM.c_39"></a><span class="hl lin">   39 </span><span class="hl com">/*---------------------------- Module Functions ---------------------------*/</span>
+<a name="MotorSM.c_40"></a><span class="hl lin">   40 </span><span class="hl com">/* prototypes for private functions for this machine.They should be functions</span>
+<a name="MotorSM.c_41"></a><span class="hl lin">   41 </span><span class="hl com">   relevant to the behavior of this state machine</span>
+<a name="MotorSM.c_42"></a><span class="hl lin">   42 </span><span class="hl com">*/</span>
+<a name="MotorSM.c_43"></a><span class="hl lin">   43 </span><span class="hl kwb">static void</span> <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span><span class="hl kwb">unsigned char</span> Command<span class="hl opt">);</span>
+<a name="MotorSM.c_44"></a><span class="hl lin">   44 </span>
+<a name="MotorSM.c_45"></a><span class="hl lin">   45 </span><span class="hl com">/*---------------------------- Module Variables ---------------------------*/</span>
+<a name="MotorSM.c_46"></a><span class="hl lin">   46 </span><span class="hl slc">// everybody needs a state variable, you may need others as well.</span>
+<a name="MotorSM.c_47"></a><span class="hl lin">   47 </span><span class="hl slc">// type of state variable should match htat of enum in header file</span>
+<a name="MotorSM.c_48"></a><span class="hl lin">   48 </span><span class="hl kwb">static</span> MotorState_t CurrentState<span class="hl opt">;</span>
+<a name="MotorSM.c_49"></a><span class="hl lin">   49 </span>
+<a name="MotorSM.c_50"></a><span class="hl lin">   50 </span><span class="hl slc">// with the introduction of Gen2, we need a module level Priority var as well</span>
+<a name="MotorSM.c_51"></a><span class="hl lin">   51 </span><span class="hl kwb">static uint8_t</span> MyPriority<span class="hl opt">;</span>
+<a name="MotorSM.c_52"></a><span class="hl lin">   52 </span>
+<a name="MotorSM.c_53"></a><span class="hl lin">   53 </span>
+<a name="MotorSM.c_54"></a><span class="hl lin">   54 </span><span class="hl com">/*------------------------------ Module Code ------------------------------*/</span>
+<a name="MotorSM.c_55"></a><span class="hl lin">   55 </span><span class="hl com">/****************************************************************************</span>
+<a name="MotorSM.c_56"></a><span class="hl lin">   56 </span><span class="hl com"> Function</span>
+<a name="MotorSM.c_57"></a><span class="hl lin">   57 </span><span class="hl com">     InitMotorSM</span>
+<a name="MotorSM.c_58"></a><span class="hl lin">   58 </span><span class="hl com"></span>
+<a name="MotorSM.c_59"></a><span class="hl lin">   59 </span><span class="hl com"> Parameters</span>
+<a name="MotorSM.c_60"></a><span class="hl lin">   60 </span><span class="hl com">     uint8_t : the priorty of this service</span>
+<a name="MotorSM.c_61"></a><span class="hl lin">   61 </span><span class="hl com"></span>
+<a name="MotorSM.c_62"></a><span class="hl lin">   62 </span><span class="hl com"> Returns</span>
+<a name="MotorSM.c_63"></a><span class="hl lin">   63 </span><span class="hl com">     boolean, False if error in initialization, True otherwise</span>
+<a name="MotorSM.c_64"></a><span class="hl lin">   64 </span><span class="hl com"></span>
+<a name="MotorSM.c_65"></a><span class="hl lin">   65 </span><span class="hl com"> Description</span>
+<a name="MotorSM.c_66"></a><span class="hl lin">   66 </span><span class="hl com">     Saves away the priority, sets up the initial transition and does any</span>
+<a name="MotorSM.c_67"></a><span class="hl lin">   67 </span><span class="hl com">     other required initialization for this state machine</span>
+<a name="MotorSM.c_68"></a><span class="hl lin">   68 </span><span class="hl com"> Notes</span>
+<a name="MotorSM.c_69"></a><span class="hl lin">   69 </span><span class="hl com"></span>
+<a name="MotorSM.c_70"></a><span class="hl lin">   70 </span><span class="hl com"> Author</span>
+<a name="MotorSM.c_71"></a><span class="hl lin">   71 </span><span class="hl com">     J. Edward Carryer, 10/23/11, 18:55</span>
+<a name="MotorSM.c_72"></a><span class="hl lin">   72 </span><span class="hl com">****************************************************************************/</span>
+<a name="MotorSM.c_73"></a><span class="hl lin">   73 </span>boolean <span class="hl kwd">InitMotorSM</span> <span class="hl opt">(</span> <span class="hl kwb">uint8_t</span> Priority <span class="hl opt">)</span>
+<a name="MotorSM.c_74"></a><span class="hl lin">   74 </span><span class="hl opt">{</span>
+<a name="MotorSM.c_75"></a><span class="hl lin">   75 </span>    ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="MotorSM.c_76"></a><span class="hl lin">   76 </span>    MyPriority <span class="hl opt">=</span> Priority<span class="hl opt">;</span>
+<a name="MotorSM.c_77"></a><span class="hl lin">   77 </span>    <span class="hl slc">// initialize PWM library</span>
+<a name="MotorSM.c_78"></a><span class="hl lin">   78 </span>    <span class="hl kwd">PWMS12_Init</span><span class="hl opt">();</span>
+<a name="MotorSM.c_79"></a><span class="hl lin">   79 </span>
+<a name="MotorSM.c_80"></a><span class="hl lin">   80 </span>    <span class="hl slc">// put us into stationary motor state</span>
+<a name="MotorSM.c_81"></a><span class="hl lin">   81 </span>    CurrentState <span class="hl opt">=</span> Stationary<span class="hl opt">;</span>
+<a name="MotorSM.c_82"></a><span class="hl lin">   82 </span>    MOTOR_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>  <span class="hl slc">//set Port M0 as output for motor direction</span>
+<a name="MotorSM.c_83"></a><span class="hl lin">   83 </span>
+<a name="MotorSM.c_84"></a><span class="hl lin">   84 </span>    <span class="hl slc">// post the initial transition event</span>
+<a name="MotorSM.c_85"></a><span class="hl lin">   85 </span>    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> ES_INIT<span class="hl opt">;</span>
+<a name="MotorSM.c_86"></a><span class="hl lin">   86 </span>    <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwd">ES_PostToService</span><span class="hl opt">(</span> MyPriority<span class="hl opt">,</span> ThisEvent<span class="hl opt">) ==</span> True<span class="hl opt">)</span>
+<a name="MotorSM.c_87"></a><span class="hl lin">   87 </span>        <span class="hl opt">{</span>
+<a name="MotorSM.c_88"></a><span class="hl lin">   88 </span>            <span class="hl kwa">return</span> True<span class="hl opt">;</span>
+<a name="MotorSM.c_89"></a><span class="hl lin">   89 </span>        <span class="hl opt">}</span>
+<a name="MotorSM.c_90"></a><span class="hl lin">   90 </span>    <span class="hl kwa">else</span>
+<a name="MotorSM.c_91"></a><span class="hl lin">   91 </span>        <span class="hl opt">{</span>
+<a name="MotorSM.c_92"></a><span class="hl lin">   92 </span>            <span class="hl kwa">return</span> False<span class="hl opt">;</span>
+<a name="MotorSM.c_93"></a><span class="hl lin">   93 </span>        <span class="hl opt">}</span>
+<a name="MotorSM.c_94"></a><span class="hl lin">   94 </span><span class="hl opt">}</span>
+<a name="MotorSM.c_95"></a><span class="hl lin">   95 </span>
+<a name="MotorSM.c_96"></a><span class="hl lin">   96 </span><span class="hl com">/****************************************************************************</span>
+<a name="MotorSM.c_97"></a><span class="hl lin">   97 </span><span class="hl com"> Function</span>
+<a name="MotorSM.c_98"></a><span class="hl lin">   98 </span><span class="hl com">     PostTemplateFSM</span>
+<a name="MotorSM.c_99"></a><span class="hl lin">   99 </span><span class="hl com"></span>
+<a name="MotorSM.c_100"></a><span class="hl lin">  100 </span><span class="hl com"> Parameters</span>
+<a name="MotorSM.c_101"></a><span class="hl lin">  101 </span><span class="hl com">     EF_Event ThisEvent , the event to post to the queue</span>
+<a name="MotorSM.c_102"></a><span class="hl lin">  102 </span><span class="hl com"></span>
+<a name="MotorSM.c_103"></a><span class="hl lin">  103 </span><span class="hl com"> Returns</span>
+<a name="MotorSM.c_104"></a><span class="hl lin">  104 </span><span class="hl com">     boolean False if the Enqueue operation failed, True otherwise</span>
+<a name="MotorSM.c_105"></a><span class="hl lin">  105 </span><span class="hl com"></span>
+<a name="MotorSM.c_106"></a><span class="hl lin">  106 </span><span class="hl com"> Description</span>
+<a name="MotorSM.c_107"></a><span class="hl lin">  107 </span><span class="hl com">     Posts an event to this state machine's queue</span>
+<a name="MotorSM.c_108"></a><span class="hl lin">  108 </span><span class="hl com"> Notes</span>
+<a name="MotorSM.c_109"></a><span class="hl lin">  109 </span><span class="hl com"></span>
+<a name="MotorSM.c_110"></a><span class="hl lin">  110 </span><span class="hl com"> Author</span>
+<a name="MotorSM.c_111"></a><span class="hl lin">  111 </span><span class="hl com">     J. Edward Carryer, 10/23/11, 19:25</span>
+<a name="MotorSM.c_112"></a><span class="hl lin">  112 </span><span class="hl com">****************************************************************************/</span>
+<a name="MotorSM.c_113"></a><span class="hl lin">  113 </span>boolean <span class="hl kwd">PostMotorSM</span><span class="hl opt">(</span> ES_Event ThisEvent <span class="hl opt">)</span>
+<a name="MotorSM.c_114"></a><span class="hl lin">  114 </span><span class="hl opt">{</span>
+<a name="MotorSM.c_115"></a><span class="hl lin">  115 </span>    <span class="hl kwa">return</span> <span class="hl kwd">ES_PostToService</span><span class="hl opt">(</span> MyPriority<span class="hl opt">,</span> ThisEvent<span class="hl opt">);</span>
+<a name="MotorSM.c_116"></a><span class="hl lin">  116 </span><span class="hl opt">}</span>
+<a name="MotorSM.c_117"></a><span class="hl lin">  117 </span>
+<a name="MotorSM.c_118"></a><span class="hl lin">  118 </span><span class="hl com">/****************************************************************************</span>
+<a name="MotorSM.c_119"></a><span class="hl lin">  119 </span><span class="hl com"> Function</span>
+<a name="MotorSM.c_120"></a><span class="hl lin">  120 </span><span class="hl com">    RunTemplateFSM</span>
+<a name="MotorSM.c_121"></a><span class="hl lin">  121 </span><span class="hl com"></span>
+<a name="MotorSM.c_122"></a><span class="hl lin">  122 </span><span class="hl com"> Parameters</span>
+<a name="MotorSM.c_123"></a><span class="hl lin">  123 </span><span class="hl com">   ES_Event : the event to process</span>
+<a name="MotorSM.c_124"></a><span class="hl lin">  124 </span><span class="hl com"></span>
+<a name="MotorSM.c_125"></a><span class="hl lin">  125 </span><span class="hl com"> Returns</span>
+<a name="MotorSM.c_126"></a><span class="hl lin">  126 </span><span class="hl com">   ES_Event, ES_NO_EVENT if no error ES_ERROR otherwise</span>
+<a name="MotorSM.c_127"></a><span class="hl lin">  127 </span><span class="hl com"></span>
+<a name="MotorSM.c_128"></a><span class="hl lin">  128 </span><span class="hl com"> Description</span>
+<a name="MotorSM.c_129"></a><span class="hl lin">  129 </span><span class="hl com">   add your description here</span>
+<a name="MotorSM.c_130"></a><span class="hl lin">  130 </span><span class="hl com"> Notes</span>
+<a name="MotorSM.c_131"></a><span class="hl lin">  131 </span><span class="hl com">   uses nested switch/case to implement the machine.</span>
+<a name="MotorSM.c_132"></a><span class="hl lin">  132 </span><span class="hl com"> Author</span>
+<a name="MotorSM.c_133"></a><span class="hl lin">  133 </span><span class="hl com">   J. Edward Carryer, 01/15/12, 15:23</span>
+<a name="MotorSM.c_134"></a><span class="hl lin">  134 </span><span class="hl com">****************************************************************************/</span>
+<a name="MotorSM.c_135"></a><span class="hl lin">  135 </span>ES_Event <span class="hl kwd">RunMotorSM</span><span class="hl opt">(</span> ES_Event ThisEvent <span class="hl opt">)</span>
+<a name="MotorSM.c_136"></a><span class="hl lin">  136 </span><span class="hl opt">{</span>
+<a name="MotorSM.c_137"></a><span class="hl lin">  137 </span>    <span class="hl kwb">static</span> MotorState_t NextState<span class="hl opt">;</span> <span class="hl slc">//initiate NextState of motor</span>
+<a name="MotorSM.c_138"></a><span class="hl lin">  138 </span>    ES_Event ReturnEvent<span class="hl opt">;</span>
+<a name="MotorSM.c_139"></a><span class="hl lin">  139 </span>    ReturnEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> ES_NO_EVENT<span class="hl opt">;</span> <span class="hl slc">// assume no errors</span>
+<a name="MotorSM.c_140"></a><span class="hl lin">  140 </span>
+<a name="MotorSM.c_141"></a><span class="hl lin">  141 </span>
+<a name="MotorSM.c_142"></a><span class="hl lin">  142 </span>    CurrentState <span class="hl opt">=</span> <span class="hl kwd">QueryMotorSM</span><span class="hl opt">();</span>
+<a name="MotorSM.c_143"></a><span class="hl lin">  143 </span>
+<a name="MotorSM.c_144"></a><span class="hl lin">  144 </span>    <span class="hl kwa">switch</span> <span class="hl opt">(</span> CurrentState <span class="hl opt">)</span>
+<a name="MotorSM.c_145"></a><span class="hl lin">  145 </span>        <span class="hl opt">{</span>
+<a name="MotorSM.c_146"></a><span class="hl lin">  146 </span>        <span class="hl kwa">case</span> Stationary<span class="hl opt">:</span>
+<a name="MotorSM.c_147"></a><span class="hl lin">  147 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span> ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> MOTORSTART <span class="hl opt">)</span>
+<a name="MotorSM.c_148"></a><span class="hl lin">  148 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_149"></a><span class="hl lin">  149 </span>                    <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span>START<span class="hl opt">);</span>
+<a name="MotorSM.c_150"></a><span class="hl lin">  150 </span>                    <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;Motor Start detected bc Game started</span> <span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="MotorSM.c_151"></a><span class="hl lin">  151 </span>                    NextState <span class="hl opt">=</span> Moving<span class="hl opt">;</span>
+<a name="MotorSM.c_152"></a><span class="hl lin">  152 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="MotorSM.c_153"></a><span class="hl lin">  153 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_154"></a><span class="hl lin">  154 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> MOTORREVERSE<span class="hl opt">)</span>
+<a name="MotorSM.c_155"></a><span class="hl lin">  155 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_156"></a><span class="hl lin">  156 </span>                    <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;Reverse motor bc GAMEEND Game ended</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="MotorSM.c_157"></a><span class="hl lin">  157 </span>                    <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span>REVERSE<span class="hl opt">);</span>
+<a name="MotorSM.c_158"></a><span class="hl lin">  158 </span>                    NextState <span class="hl opt">=</span> Reverse<span class="hl opt">;</span>
+<a name="MotorSM.c_159"></a><span class="hl lin">  159 </span>
+<a name="MotorSM.c_160"></a><span class="hl lin">  160 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="MotorSM.c_161"></a><span class="hl lin">  161 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_162"></a><span class="hl lin">  162 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> MOTORFAST<span class="hl opt">)</span>
+<a name="MotorSM.c_163"></a><span class="hl lin">  163 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_164"></a><span class="hl lin">  164 </span>                    <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span>FAST<span class="hl opt">);</span>
+<a name="MotorSM.c_165"></a><span class="hl lin">  165 </span>                    NextState <span class="hl opt">=</span> Moving<span class="hl opt">;</span>
+<a name="MotorSM.c_166"></a><span class="hl lin">  166 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="MotorSM.c_167"></a><span class="hl lin">  167 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_168"></a><span class="hl lin">  168 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="MotorSM.c_169"></a><span class="hl lin">  169 </span>
+<a name="MotorSM.c_170"></a><span class="hl lin">  170 </span>        <span class="hl kwa">case</span> Moving<span class="hl opt">:</span>
+<a name="MotorSM.c_171"></a><span class="hl lin">  171 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span> ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> MOTORFAST <span class="hl opt">)</span>
+<a name="MotorSM.c_172"></a><span class="hl lin">  172 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_173"></a><span class="hl lin">  173 </span>                    <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span>FAST<span class="hl opt">);</span>
+<a name="MotorSM.c_174"></a><span class="hl lin">  174 </span>                    <span class="hl slc">//puts(&quot;Motor Faster detected\r\n&quot;);</span>
+<a name="MotorSM.c_175"></a><span class="hl lin">  175 </span>                    NextState <span class="hl opt">=</span> Moving<span class="hl opt">;</span>
+<a name="MotorSM.c_176"></a><span class="hl lin">  176 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="MotorSM.c_177"></a><span class="hl lin">  177 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_178"></a><span class="hl lin">  178 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> MOTORSLOW<span class="hl opt">)</span>
+<a name="MotorSM.c_179"></a><span class="hl lin">  179 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_180"></a><span class="hl lin">  180 </span>                    <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span>SLOW<span class="hl opt">);</span>
+<a name="MotorSM.c_181"></a><span class="hl lin">  181 </span>                    <span class="hl slc">//puts(&quot;Motor Slower detected\r\n&quot;);</span>
+<a name="MotorSM.c_182"></a><span class="hl lin">  182 </span>                    NextState <span class="hl opt">=</span> Moving<span class="hl opt">;</span>
+<a name="MotorSM.c_183"></a><span class="hl lin">  183 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="MotorSM.c_184"></a><span class="hl lin">  184 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_185"></a><span class="hl lin">  185 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> OILSLICK<span class="hl opt">)</span>
+<a name="MotorSM.c_186"></a><span class="hl lin">  186 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_187"></a><span class="hl lin">  187 </span>                    <span class="hl slc">//puts(&quot;motor should be stopped\r\n&quot;);</span>
+<a name="MotorSM.c_188"></a><span class="hl lin">  188 </span>                    <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span>STOP<span class="hl opt">);</span> <span class="hl slc">//will need to modify to make it stop for 2 seconds</span>
+<a name="MotorSM.c_189"></a><span class="hl lin">  189 </span>                    NextState <span class="hl opt">=</span> Stationary<span class="hl opt">;</span>
+<a name="MotorSM.c_190"></a><span class="hl lin">  190 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="MotorSM.c_191"></a><span class="hl lin">  191 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_192"></a><span class="hl lin">  192 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> MOTORSTOP<span class="hl opt">)</span>
+<a name="MotorSM.c_193"></a><span class="hl lin">  193 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_194"></a><span class="hl lin">  194 </span>                    <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span>STOP<span class="hl opt">);</span>
+<a name="MotorSM.c_195"></a><span class="hl lin">  195 </span>                    <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;Motor Stop detected</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="MotorSM.c_196"></a><span class="hl lin">  196 </span>                    NextState <span class="hl opt">=</span> Stationary<span class="hl opt">;</span>
+<a name="MotorSM.c_197"></a><span class="hl lin">  197 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="MotorSM.c_198"></a><span class="hl lin">  198 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_199"></a><span class="hl lin">  199 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="MotorSM.c_200"></a><span class="hl lin">  200 </span>
+<a name="MotorSM.c_201"></a><span class="hl lin">  201 </span>        <span class="hl kwa">case</span> Reverse<span class="hl opt">:</span>
+<a name="MotorSM.c_202"></a><span class="hl lin">  202 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> MOTORSTOP<span class="hl opt">)</span>
+<a name="MotorSM.c_203"></a><span class="hl lin">  203 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_204"></a><span class="hl lin">  204 </span>                    <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span>STOP<span class="hl opt">);</span>
+<a name="MotorSM.c_205"></a><span class="hl lin">  205 </span>                    <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;Motor Stopped</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="MotorSM.c_206"></a><span class="hl lin">  206 </span>                    NextState <span class="hl opt">=</span> Stationary<span class="hl opt">;</span>
+<a name="MotorSM.c_207"></a><span class="hl lin">  207 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="MotorSM.c_208"></a><span class="hl lin">  208 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_209"></a><span class="hl lin">  209 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="MotorSM.c_210"></a><span class="hl lin">  210 </span>        <span class="hl opt">}</span>
+<a name="MotorSM.c_211"></a><span class="hl lin">  211 </span>    CurrentState <span class="hl opt">=</span> NextState<span class="hl opt">;</span>
+<a name="MotorSM.c_212"></a><span class="hl lin">  212 </span>    <span class="hl kwa">return</span> ReturnEvent<span class="hl opt">;</span>
+<a name="MotorSM.c_213"></a><span class="hl lin">  213 </span><span class="hl opt">}</span>
+<a name="MotorSM.c_214"></a><span class="hl lin">  214 </span>
+<a name="MotorSM.c_215"></a><span class="hl lin">  215 </span><span class="hl com">/****************************************************************************</span>
+<a name="MotorSM.c_216"></a><span class="hl lin">  216 </span><span class="hl com"> Function</span>
+<a name="MotorSM.c_217"></a><span class="hl lin">  217 </span><span class="hl com">     QueryTemplateSM</span>
+<a name="MotorSM.c_218"></a><span class="hl lin">  218 </span><span class="hl com"></span>
+<a name="MotorSM.c_219"></a><span class="hl lin">  219 </span><span class="hl com"> Parameters</span>
+<a name="MotorSM.c_220"></a><span class="hl lin">  220 </span><span class="hl com">     None</span>
+<a name="MotorSM.c_221"></a><span class="hl lin">  221 </span><span class="hl com"></span>
+<a name="MotorSM.c_222"></a><span class="hl lin">  222 </span><span class="hl com"> Returns</span>
+<a name="MotorSM.c_223"></a><span class="hl lin">  223 </span><span class="hl com">     TemplateState_t The current state of the Template state machine</span>
+<a name="MotorSM.c_224"></a><span class="hl lin">  224 </span><span class="hl com"></span>
+<a name="MotorSM.c_225"></a><span class="hl lin">  225 </span><span class="hl com"> Description</span>
+<a name="MotorSM.c_226"></a><span class="hl lin">  226 </span><span class="hl com">     returns the current state of the Template state machine</span>
+<a name="MotorSM.c_227"></a><span class="hl lin">  227 </span><span class="hl com"> Notes</span>
+<a name="MotorSM.c_228"></a><span class="hl lin">  228 </span><span class="hl com"></span>
+<a name="MotorSM.c_229"></a><span class="hl lin">  229 </span><span class="hl com"> Author</span>
+<a name="MotorSM.c_230"></a><span class="hl lin">  230 </span><span class="hl com">     J. Edward Carryer, 10/23/11, 19:21</span>
+<a name="MotorSM.c_231"></a><span class="hl lin">  231 </span><span class="hl com">****************************************************************************/</span>
+<a name="MotorSM.c_232"></a><span class="hl lin">  232 </span>MotorState_t <span class="hl kwd">QueryMotorSM</span> <span class="hl opt">(</span> <span class="hl kwb">void</span> <span class="hl opt">)</span>
+<a name="MotorSM.c_233"></a><span class="hl lin">  233 </span><span class="hl opt">{</span>
+<a name="MotorSM.c_234"></a><span class="hl lin">  234 </span>    <span class="hl kwa">return</span><span class="hl opt">(</span>CurrentState<span class="hl opt">);</span>
+<a name="MotorSM.c_235"></a><span class="hl lin">  235 </span><span class="hl opt">}</span>
+<a name="MotorSM.c_236"></a><span class="hl lin">  236 </span>
+<a name="MotorSM.c_237"></a><span class="hl lin">  237 </span><span class="hl com">/***************************************************************************</span>
+<a name="MotorSM.c_238"></a><span class="hl lin">  238 </span><span class="hl com"> private functions</span>
+<a name="MotorSM.c_239"></a><span class="hl lin">  239 </span><span class="hl com"> ***************************************************************************/</span>
+<a name="MotorSM.c_240"></a><span class="hl lin">  240 </span><span class="hl kwb">void</span> <span class="hl kwd">MotorSpeedDir</span><span class="hl opt">(</span><span class="hl kwb">unsigned char</span> Command<span class="hl opt">)</span>
+<a name="MotorSM.c_241"></a><span class="hl lin">  241 </span><span class="hl opt">{</span>
+<a name="MotorSM.c_242"></a><span class="hl lin">  242 </span>    <span class="hl kwb">static unsigned char</span> Speed<span class="hl opt">[] = {</span><span class="hl num">25</span><span class="hl opt">,</span><span class="hl num">30</span><span class="hl opt">,</span><span class="hl num">35</span><span class="hl opt">};</span> <span class="hl slc">//duty cycle for PWM</span>
+<a name="MotorSM.c_243"></a><span class="hl lin">  243 </span>    <span class="hl kwb">static unsigned char</span> ind <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//default index of duty cycle = 50</span>
+<a name="MotorSM.c_244"></a><span class="hl lin">  244 </span>
+<a name="MotorSM.c_245"></a><span class="hl lin">  245 </span>    <span class="hl kwa">switch</span> <span class="hl opt">(</span>Command<span class="hl opt">)</span>
+<a name="MotorSM.c_246"></a><span class="hl lin">  246 </span>        <span class="hl opt">{</span>
+<a name="MotorSM.c_247"></a><span class="hl lin">  247 </span>        <span class="hl kwa">case</span> STOP<span class="hl opt">:</span>
+<a name="MotorSM.c_248"></a><span class="hl lin">  248 </span>            MOTORDIRECTION <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//default direction: T0 HIGH</span>
+<a name="MotorSM.c_249"></a><span class="hl lin">  249 </span>            <span class="hl kwd">PWMS12_SetDuty</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<a name="MotorSM.c_250"></a><span class="hl lin">  250 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="MotorSM.c_251"></a><span class="hl lin">  251 </span>
+<a name="MotorSM.c_252"></a><span class="hl lin">  252 </span>        <span class="hl kwa">case</span> START<span class="hl opt">:</span>
+<a name="MotorSM.c_253"></a><span class="hl lin">  253 </span>            MOTORDIRECTION <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//default direction: T0 HIGH</span>
+<a name="MotorSM.c_254"></a><span class="hl lin">  254 </span>            <span class="hl kwd">PWMS12_SetDuty</span><span class="hl opt">(</span>Speed<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">],</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<a name="MotorSM.c_255"></a><span class="hl lin">  255 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="MotorSM.c_256"></a><span class="hl lin">  256 </span>
+<a name="MotorSM.c_257"></a><span class="hl lin">  257 </span>        <span class="hl kwa">case</span> SLOW<span class="hl opt">:</span>
+<a name="MotorSM.c_258"></a><span class="hl lin">  258 </span>            MOTORDIRECTION <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<a name="MotorSM.c_259"></a><span class="hl lin">  259 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ind <span class="hl opt">&lt;=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+<a name="MotorSM.c_260"></a><span class="hl lin">  260 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_261"></a><span class="hl lin">  261 </span>                    ind <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="MotorSM.c_262"></a><span class="hl lin">  262 </span>                    <span class="hl kwd">PWMS12_SetDuty</span><span class="hl opt">(</span>Speed<span class="hl opt">[</span>ind<span class="hl opt">],</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<a name="MotorSM.c_263"></a><span class="hl lin">  263 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_264"></a><span class="hl lin">  264 </span>            <span class="hl kwa">else</span>
+<a name="MotorSM.c_265"></a><span class="hl lin">  265 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_266"></a><span class="hl lin">  266 </span>                    <span class="hl kwd">PWMS12_SetDuty</span><span class="hl opt">(</span>Speed<span class="hl opt">[</span>ind<span class="hl opt">],</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<a name="MotorSM.c_267"></a><span class="hl lin">  267 </span>                    ind<span class="hl opt">--;</span>
+<a name="MotorSM.c_268"></a><span class="hl lin">  268 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_269"></a><span class="hl lin">  269 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="MotorSM.c_270"></a><span class="hl lin">  270 </span>
+<a name="MotorSM.c_271"></a><span class="hl lin">  271 </span>        <span class="hl kwa">case</span> FAST<span class="hl opt">:</span>
+<a name="MotorSM.c_272"></a><span class="hl lin">  272 </span>            MOTORDIRECTION <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<a name="MotorSM.c_273"></a><span class="hl lin">  273 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ind <span class="hl opt">&gt;=</span> <span class="hl num">2</span><span class="hl opt">)</span>
+<a name="MotorSM.c_274"></a><span class="hl lin">  274 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_275"></a><span class="hl lin">  275 </span>                    ind <span class="hl opt">=</span> <span class="hl num">2</span><span class="hl opt">;</span>
+<a name="MotorSM.c_276"></a><span class="hl lin">  276 </span>                    <span class="hl kwd">PWMS12_SetDuty</span><span class="hl opt">(</span>Speed<span class="hl opt">[</span>ind<span class="hl opt">],</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<a name="MotorSM.c_277"></a><span class="hl lin">  277 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_278"></a><span class="hl lin">  278 </span>            <span class="hl kwa">else</span>
+<a name="MotorSM.c_279"></a><span class="hl lin">  279 </span>                <span class="hl opt">{</span>
+<a name="MotorSM.c_280"></a><span class="hl lin">  280 </span>                    <span class="hl kwd">PWMS12_SetDuty</span><span class="hl opt">(</span>Speed<span class="hl opt">[</span>ind<span class="hl opt">],</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<a name="MotorSM.c_281"></a><span class="hl lin">  281 </span>                    ind<span class="hl opt">++;</span>
+<a name="MotorSM.c_282"></a><span class="hl lin">  282 </span>                <span class="hl opt">}</span>
+<a name="MotorSM.c_283"></a><span class="hl lin">  283 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="MotorSM.c_284"></a><span class="hl lin">  284 </span>
+<a name="MotorSM.c_285"></a><span class="hl lin">  285 </span>        <span class="hl kwa">case</span> REVERSE<span class="hl opt">:</span>
+<a name="MotorSM.c_286"></a><span class="hl lin">  286 </span>            MOTORDIRECTION <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//reverse direction T0 = LOW</span>
+<a name="MotorSM.c_287"></a><span class="hl lin">  287 </span>            <span class="hl kwd">PWMS12_SetDuty</span><span class="hl opt">(</span><span class="hl num">45</span><span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<a name="MotorSM.c_288"></a><span class="hl lin">  288 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="MotorSM.c_289"></a><span class="hl lin">  289 </span>        <span class="hl opt">}</span>
+<a name="MotorSM.c_290"></a><span class="hl lin">  290 </span>
+<a name="MotorSM.c_291"></a><span class="hl lin">  291 </span>    <span class="hl kwa">return</span><span class="hl opt">;</span>
+<a name="MotorSM.c_292"></a><span class="hl lin">  292 </span><span class="hl opt">}</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

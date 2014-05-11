@@ -1,0 +1,259 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf8{#include <stdio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <stdlib.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <mc{9}s{1}{2}e{1}{2}{8}.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <S{1}{2}e{1}{2}{8}bits.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <Bin_Const.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <termio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Configure.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Framework.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Timers.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Types.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ADS{1}{2}.H"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"BITDEFS.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#include}} {\cf9{"DEFINITIONS.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"BatteryLvlServo.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"CommandSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"SCI{1}.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"SensingService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"XBeeComSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*---------------------------- Module Functions ---------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/* prototypes for private functions for this machine.They should be functions}}}\par\pard
+\cbpat1{{\cf6{   relevant to the behavior of this state machine}}}\par\pard
+\cbpat1{{\cf6{*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*---------------------------- Module Variables ---------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// everybody needs a state variable, you may need others as well.}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// type of state variable should match htat of enum in header file}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static}} {\cf2{XBeeComState_t CurrentState}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static unsigned char}} {\cf2{numBytes}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//numBytes to process}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{unsigned char}} {\cf2{DataArray}}{\cf11{[}}{\cf2{POD{2}ROAM}}{\cf11{];}} {\cf2{}}{\cf5{//initialize global array that holds Data coming from the Xbee}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{unsigned char}} {\cf2{TempArray}}{\cf11{[}}{\cf2{POD{2}ROAM}}{\cf11{];}} {\cf2{}}{\cf5{//latest message}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static unsigned char}} {\cf2{runSum}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// with the introduction of Gen{2}, we need a module level Priority var as well}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static uint{8}_t}} {\cf2{MyPriority}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*------------------------------ Module Code ------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     InitXBeeComSM}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     uint{8}_t : the priorty of this service}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     boolean, False if error in initialization, True otherwise}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Saves away the priority, sets up the initial transition and does any}}}\par\pard
+\cbpat1{{\cf6{     other required initialization for this state machine}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{     J. Edward Carryer, {1}{0}/{2}{3}/{1}{1}, {1}{8}:{5}{5}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{InitXBeeComSM}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{uint{8}_t}} {\cf2{Priority}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    ES_Event ThisEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    MyPriority}} {\cf11{=}} {\cf2{Priority}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{    {\cf5{//INITIAL STATE}}}\par\pard
+\cbpat1{{\cf2{    CurrentState}} {\cf11{=}} {\cf2{Wait{2}Receive}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{    {\cf5{// post the initial transition event}}}\par\pard
+\cbpat1{{\cf2{    ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{ES_INIT}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf15{ES_PostToService}}{\cf2{}}{\cf11{(}} {\cf2{MyPriority}}{\cf11{,}} {\cf2{ThisEvent}}{\cf11{) ==}} {\cf2{True}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{return}} {\cf2{True}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{return}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     PostXBeeComSM}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     EF_Event ThisEvent , the event to post to the queue}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     boolean False if the Enqueue operation failed, True otherwise}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Posts an event to this state machine's queue}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{     J. Edward Carryer, {1}{0}/{2}{3}/{1}{1}, {1}{9}:{2}{5}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{PostXBeeComSM}}{\cf2{}}{\cf11{(}} {\cf2{ES_Event ThisEvent}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}} {\cf2{}}{\cf15{ES_PostToService}}{\cf2{}}{\cf11{(}} {\cf2{MyPriority}}{\cf11{,}} {\cf2{ThisEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    RunXbeeComSM}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   ES_Event : the event to process}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   ES_Event, ES_NO_EVENT if no error ES_ERROR otherwise}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   add your description here}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{   uses nested switch/case to implement the machine.}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   J. Edward Carryer, {0}{1}/{1}{5}/{1}{2}, {1}{5}:{2}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}\par\pard
+\cbpat1{ES_Event}} {\cf15{RunXBeeComSM}}{\cf2{}}{\cf11{(}} {\cf2{ES_Event ThisEvent}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    ES_Event ReturnEvent}}{\cf11{,}} {\cf2{ComEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned char}} {\cf2{msb}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned char}} {\cf2{lsb}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned char}} {\cf2{checkSum}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned char}} {\cf2{bytesLeft}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    ReturnEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{ES_NO_EVENT}}{\cf11{;}} {\cf2{}}{\cf5{// assume no errors}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{switch}} {\cf2{}}{\cf11{(}} {\cf2{CurrentState}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf12{case}} {\cf2{InitState}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{==}} {\cf2{ES_INIT}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    CurrentState}} {\cf11{=}} {\cf2{Wait{2}Receive}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf12{case}} {\cf2{Wait{2}Receive}} {\cf11{:}}       {\cf2{}}{\cf5{// If current state is initial Psedudo State}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{==}} {\cf2{RDRF_SET}}{\cf11{) && (}}{\cf2{SCI{1}DRL}} {\cf11{==}} {\cf2{START_DELIM}} {\cf11{) )}}{\cf2{}}{\cf5{// only respond to start delimiter}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    CurrentState}} {\cf11{=}} {\cf2{Wait{4}MSB}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//end Wait{2}Receive}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf12{case}} {\cf2{Wait{4}MSB}} {\cf11{:}}       {\cf2{}}{\cf5{// If current state is state one}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{==}} {\cf2{RDRF_SET}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    msb}} {\cf11{=}} {\cf2{SCI{1}DRL}}{\cf11{;}} {\cf2{}}{\cf5{//copy MSB of length to local variable}}}\par\pard
+\cbpat1{{\cf2{                    CurrentState}} {\cf11{=}} {\cf2{Wait{4}LSB}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//end Wait{4}MSB}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf12{case}} {\cf2{Wait{4}LSB}} {\cf11{:}}       {\cf2{}}{\cf5{// If current state is state one}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{==}} {\cf2{RDRF_SET}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    lsb}} {\cf11{=}} {\cf2{SCI{1}DRL}}{\cf11{;}} {\cf2{}}{\cf5{//copy MSB of length to local variable}}}\par\pard
+\cbpat1{{\cf2{                    numBytes}} {\cf11{=}} {\cf2{lsb}}{\cf11{;}} {\cf2{}}{\cf5{//concatenate to determin numBytes received}}}\par\pard
+\cbpat1{{\cf2{                    bytesLeft}} {\cf11{=}} {\cf2{numBytes}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{                    runSum}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{                    CurrentState}} {\cf11{=}} {\cf2{ReadingData}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//end Wait{4}LSB}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf12{case}} {\cf2{ReadingData}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{==}} {\cf2{RDRF_SET}}{\cf11{) && (}}{\cf2{bytesLeft}} {\cf11{!=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{) )}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    TempArray}}{\cf11{[}}{\cf2{numBytes}} {\cf11{-}} {\cf2{bytesLeft}}{\cf11{] =}} {\cf2{SCI{1}DRL}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{                    runSum}} {\cf11{+=}} {\cf2{TempArray}}{\cf11{[}}{\cf2{numBytes}} {\cf11{-}} {\cf2{bytesLeft}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{                    bytesLeft}} {\cf11{--;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{bytesLeft}} {\cf11{==}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf5{//only received XMIT_STATUS from SELF}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{TempArray}}{\cf11{[}}{\cf2{RX_API_ID}}{\cf11{] ==}} {\cf2{XMIT_STATUS}}{\cf11{) )}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                            CurrentState}} {\cf11{=}} {\cf2{Wait{2}Receive}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{                    {\cf5{//if type = connect, ignore b.c most likely broadcast from other POD(s)}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf12{else if}} {\cf2{}}{\cf11{( (}}{\cf2{TempArray}}{\cf11{[}}{\cf2{RX_TYPE}}{\cf11{] ==}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{) )}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                            CurrentState}} {\cf11{=}} {\cf2{Wait{2}Receive}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                            CurrentState}} {\cf11{=}} {\cf2{EvalCheckSum}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//end ReadingData}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf12{case}} {\cf2{EvalCheckSum}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{==}} {\cf2{RDRF_SET}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    checkSum}} {\cf11{=}} {\cf2{SCI{1}DRL}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{                    {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{checkSum}} {\cf11{+}} {\cf2{runSum}}{\cf11{) ==}} {\cf2{MAX_CHAR}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf5{//good check sum so update the DataArray}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf5{//DataArray = TempArray; NOTE: ARRAYS WORK AS POINTERS. CANNOT DO A DIRECT ASSIGNMENT}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf5{//use memcpy to copy over arrays: void * memcpy ( void * destination, const void * source, size_t num );}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf5{//we are using an array of chars, which is {1} byte each}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf15{memcpy}}{\cf2{}}{\cf11{(}}{\cf2{DataArray}}{\cf11{,}} {\cf2{TempArray}}{\cf11{,}} {\cf2{POD{2}ROAM}}{\cf11{*}}{\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf5{//printf("Posted NEW_MSG. Type = %u \\r\\n", DataArray[RX_TYPE]);}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf5{//printf("Bat_Level = %u, State = %u, LEDs are %u \\r\\n", DataArray[RX_BATLVL], DataArray[RX_CHARGE], DataArray[RX_LEDSTATE]);}}}\par\pard
+\cbpat1{{\cf2{                            ComEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{NEW_MSG}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{                            ComEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{DataArray}}{\cf11{[}}{\cf2{RX_TYPE}}{\cf11{];}} {\cf2{}}{\cf5{//send Command as eventparam}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf15{PostCommandSM}}{\cf2{}}{\cf11{(}}{\cf2{ComEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{                            CurrentState}} {\cf11{=}} {\cf2{Wait{2}Receive}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{                        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                            CurrentState}} {\cf11{=}} {\cf2{Wait{2}Receive}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf5{//printf("Bad checksum \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//end EvalCheckSum}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}  {\cf2{}}{\cf5{// end switch on Current State}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}} {\cf2{ReturnEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     QueryXBeeComSM}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     XbeeComState_t The current state of the XbeeCom state machine}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     returns the current state of the XbeeCom state machine}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{     J. Edward Carryer, {1}{0}/{2}{3}/{1}{1}, {1}{9}:{2}{1}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}\par\pard
+\cbpat1{XBeeComState_t}} {\cf15{QueryXBeeComSM}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}}{\cf2{}}{\cf11{(}}{\cf2{CurrentState}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/***************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ private functions}}}\par\pard
+\cbpat1{{\cf6{ ***************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{unsigned char}} {\cf2{}}{\cf15{QueryDataArray}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{ElementNum}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}} {\cf2{DataArray}}{\cf11{[}}{\cf2{ElementNum}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}{\cf2{}}}\par\pard
+\cbpat1{}}

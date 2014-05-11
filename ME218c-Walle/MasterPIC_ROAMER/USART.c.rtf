@@ -1,0 +1,57 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf6{/* USART Hardware Initialization}}}\par\pard
+\cbpat1{{\cf6{Setup all port configurations to use USART on PICS */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#include <htc.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"BITDEFS.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Configure.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Framework.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Timers.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Queue.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"SPI_Master.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/*---------------------------- Module Variables ---------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// everybody needs a state variable, you may need others as well.}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// type of state variable should match htat of enum in header file}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     InitUSART}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Initializes the USART module on the PIC{1}{6}F{6}{9}{0}}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{InitUSART}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{// BAUDCTL = set BRG{1}{6}, all others clear}}}\par\pard
+\cbpat1{{\cf2{    BRG{1}{6}}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//Set Baud Rate = {9}{6}{0}{0}, so SPBRG + SPBRGH = {5}{1}{9}}}}\par\pard
+\cbpat1{{\cf2{    SPBRGH}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{b{0}{0}{0}{0}{0}{0}{1}{0}}}{\cf11{;}} {\cf2{}}{\cf5{//{5}{1}{2}}}}\par\pard
+\cbpat1{{\cf2{    SPBRG}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{b{0}{0}{0}{0}{0}{1}{1}{1}}}{\cf11{;}} {\cf2{}}{\cf5{//{7}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// TXSTA = set TXEN and BRGH, all others clear}}}\par\pard
+\cbpat1{{\cf2{    TXEN}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//enable TX}}}\par\pard
+\cbpat1{{\cf2{    BRGH}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//high speed}}}\par\pard
+\cbpat1{{\cf2{    TRISB{7}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//set RB{7} as output}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// RCSTA = Set SPEN & CREN, all others clear}}}\par\pard
+\cbpat1{{\cf2{    SYNC}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//clear SYNC bit}}}\par\pard
+\cbpat1{{\cf2{    SPEN}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//enable serial port}}}\par\pard
+\cbpat1{{\cf2{    CREN}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}		{\cf2{}}{\cf5{//enable continuous transfer}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Set RX line}}}\par\pard
+\cbpat1{{\cf2{    TRISB{5}}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}}

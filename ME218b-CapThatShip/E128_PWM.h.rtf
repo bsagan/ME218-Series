@@ -1,0 +1,58 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red51\green00\blue102;\red24\green97\blue167;\red50\green186\blue06;\red00\green102\blue51;\red00\green102\blue51;\red166\green23\blue97;\red83\green116\blue176;\red102\green51\blue00;\red154\green154\blue154;\red85\green85\blue85;\red255\green48\blue48;\red244\green140\blue35;\red00\green00\blue255;\red209\green28\blue237;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{  Header file for PWM functions on the E{1}{2}{8}}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ ****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf8{#ifndef E{1}{2}{8}_PWM_H}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define E{1}{2}{8}_PWM_H}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// Declare Public Function Prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{InitPWMHardware}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{InitControlTimerHardware}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}}{\cf2{}}{\cf11{,}} {\cf2{}}{\cf13{char}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{DriveForwardFull}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{signed int}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{DriveForwardHalf}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{DriveReverseFull}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{signed int}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{DriveReverseHalf}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{RotateClockwise}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{RotateClockwiseHalf}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{RotateCounterClockwise}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{RotateCounterClockwiseHalf}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{StopMotor}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{RampUpFlywheel}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{RampDownFlywheel}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{FlywheelOff}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*}}}\par\pard
+\cbpat1{{\cf6{int QueryWheel{0}Speed( void );}}}\par\pard
+\cbpat1{{\cf6{int QueryWheel{1}Speed( void );}}}\par\pard
+\cbpat1{{\cf6{int QueryWheel{0}Width( void );}}}\par\pard
+\cbpat1{{\cf6{int QueryWheel{1}Width( void );}}}\par\pard
+\cbpat1{{\cf6{void SetWheel{0}Speed( unsigned char, unsigned char );}}}\par\pard
+\cbpat1{{\cf6{void SetWheel{1}Speed( unsigned char, unsigned char);}}}\par\pard
+\cbpat1{{\cf6{*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf5{//PWM Channel Definitions}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define PWM_CHANNEL{0}  {0}}}   {\cf5{//wheel {0}}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define PWM_CHANNEL{1}  {1}}}   {\cf5{//wheel {1}}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define PWM_CHANNEL{4}  {4}}}   {\cf5{//flywheel}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{//#defines}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{//prescale definitions}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define PSCALE{1}{2}{8}     (_S{1}{2}_PCKA{0} | _S{1}{2}_PCKA{1} | _S{1}{2}_PCKA{2})}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define PSCALE{6}{4}      (_S{1}{2}_PCKA{1} | _S{1}{2}_PCKA{2})}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define PSCALE{3}{2}      (_S{1}{2}_PCKA{2} | _S{1}{2}_PCKA{0})}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define PSCALE{1}{6}      _S{1}{2}_PCKA{2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define PSCALE{8}       (_S{1}{2}_PCKA{1} | _S{1}{2}_PCKA{0})}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define PSCALE{4}       _S{1}{2}_PCKA{1}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define PSCALE{2}       _S{1}{2}_PCKA{0}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#endif}} {\cf6{/* E{1}{2}{8}_PWM_H */}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}}

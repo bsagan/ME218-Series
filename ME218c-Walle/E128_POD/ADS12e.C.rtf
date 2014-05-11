@@ -1,0 +1,241 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf5{//#define TEST}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Copyright (C) Creative Applications Engineering {2}{0}{0}{4}.}}}\par\pard
+\cbpat1{{\cf6{ Permission granted to freely use this file as long as this header remains}}}\par\pard
+\cbpat1{{\cf6{ intact.}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{         Library to provide simplified setup of Port AD and the Analog}}}\par\pard
+\cbpat1{{\cf6{         to Digital converter on the '{9}S{1}{2}.}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ History}}}\par\pard
+\cbpat1{{\cf6{ When           Who	What/Why}}}\par\pard
+\cbpat1{{\cf6{ -------------- ---	--------}}}\par\pard
+\cbpat1{{\cf6{ {0}{5}/{0}{2}/{0}{7} {2}{0}:{4}{9} jec  corrected definition of FreezeMode}}}\par\pard
+\cbpat1{{\cf6{ {0}{1}/{2}{9}/{0}{5} {1}{0}:{0}{5} jec  modified slightly for the E{1}{2}{8}}}}\par\pard
+\cbpat1{{\cf6{ {0}{6}/{2}{2}/{0}{4} {2}{0}:{0}{3} jec  first pass}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Include Files -----------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf8{#include <hidef.h>}}         {\cf6{/* common defines and macros */}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <mc{9}s{1}{2}e{1}{2}{8}.h>}}     {\cf6{/* derivative information */}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <S{1}{2}e{1}{2}{8}bits.h>}}    {\cf6{/* bit definitions  */}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <string.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ADS{1}{2}.H"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Module Defines ----------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define NumBitsPortAD {8}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define BadADNum {8}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/* BaseIndex is used to read mode string right to left */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define BaseIndex (NumBitsPortAD-{1})}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/*set the A/D converter to finish conversion when entering freeze mode */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define ADFreezeMode _S{1}{2}_FRZ{1}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/*shift to get the number of channels into the right bits to program ADCTL{3} */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define ChanShift {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/*shift to get the sample clocks into the right bits to program ADCTL{4} */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define ADSampShift {5}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/* for ADSampTime {0}= {2}clks, {1}= {4} clks, {2}= {8} clks, {3}= {1}{6} clks */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define ADSampTime {0}x{0}{0}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/* legal values for ADClockDiv are even values {2}-{6}{4} */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define ADClockDiv {1}{2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define ADClockDivBits ((ADClockDiv-{2})>>{1})}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*------------------------------ Module Types -----------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*---------------------------- Private Functions ---------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*---------------------------- Module Variables ---------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/* initializer on FirstADPin needs to be illegal value */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{static unsigned char}} {\cf2{FirstADPin}} {\cf11{=}} {\cf2{BadADNum}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static unsigned char}} {\cf2{NumADChannels}}{\cf11{=}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*------------------------------ Module Code ------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{         ADS{1}{2}_Init}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{         char [{9}] A null terminated string of {8} ASCII characters to describe}}}\par\pard
+\cbpat1{{\cf6{            the mode of each of the pins on Port AD. the legal values are:}}}\par\pard
+\cbpat1{{\cf6{            I for digital input, O for digital output, A for analog input.}}}\par\pard
+\cbpat1{{\cf6{            The string positions, reading left to right, corresspond to the}}}\par\pard
+\cbpat1{{\cf6{            pins MSB to LSB (modeString[{0}]=MSB, modeString[{7}]=LSB)}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{         ADS{1}{2}_Err if the input string is malformed}}}\par\pard
+\cbpat1{{\cf6{         ADS{1}{2}_OK if the mode string was OK}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{         Initializes Port AD data direction register & ATDDIEN for digital I/O}}}\par\pard
+\cbpat1{{\cf6{         and the A/D converter to multi-channel, continious conversion.}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{         Assumes a {2}{4}MHz bus clock, but simply sets the defualt values for now.}}}\par\pard
+\cbpat1{{\cf6{         Enforces a single block of A/D channels even though it is possible to}}}\par\pard
+\cbpat1{{\cf6{         make a contigious sequence that occupies a non-contigious block. For}}}\par\pard
+\cbpat1{{\cf6{         example, channels {6},{7},{0},& {1} are sequence contigious but occupy {2} blocks}}}\par\pard
+\cbpat1{{\cf6{         so would be rejected by this code.}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{         J. Edward Carryer, {0}{6}/{2}{2}/{0}{4} {2}{0}:{1}{5}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}\par\pard
+\cbpat1{ADS{1}{2}ReturnTyp}} {\cf15{ADS{1}{2}_Init}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{char}} {\cf2{}}{\cf11{*}} {\cf2{modeString}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{i}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{OutputPins}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{InputPins}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf15{strlen}}{\cf2{}}{\cf11{(}}{\cf2{modeString}}{\cf11{) !=}} {\cf2{NumBitsPortAD}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf12{return}} {\cf2{ADS{1}{2}_Err}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    FirstADPin}}  {\cf11{=}} {\cf2{BadADNum}}{\cf11{;}}  {\cf2{}}{\cf6{/* clear values from any previous call */}}{\cf2{}\par\pard
+\cbpat1{    NumADChannels}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf6{/* scan through the string and find the type of each pin, preparing the}}}\par\pard
+\cbpat1{{\cf6{       mode programming values as we go */}}{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{for}} {\cf2{}}{\cf11{(}} {\cf2{i}}{\cf11{=}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{i}}{\cf11{<}} {\cf2{NumBitsPortAD}}{\cf11{;}} {\cf2{i}}{\cf11{++)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf6{/* step through the bits in the string, right to left */}}{\cf2{}}}\par\pard
+\cbpat1{            {\cf12{switch}} {\cf2{}}{\cf11{(}} {\cf2{modeString}}{\cf11{[}}{\cf2{BaseIndex}}{\cf11{-}}{\cf2{i}}{\cf11{] )}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf12{case}} {\cf2{}}{\cf3{'I'}}{\cf2{}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{                    InputPins}} {\cf11{|=}} {\cf2{}}{\cf4{{0}x{0}{1}}}{\cf2{}}{\cf11{<<}}{\cf2{i}}{\cf11{;}}  {\cf2{}}{\cf6{/* add bit to mask */}}{\cf2{}}}\par\pard
+\cbpat1{                    {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf12{case}} {\cf2{}}{\cf3{'O'}}{\cf2{}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{                    OutputPins}} {\cf11{|=}} {\cf2{}}{\cf4{{0}x{0}{1}}}{\cf2{}}{\cf11{<<}}{\cf2{i}}{\cf11{;}}  {\cf2{}}{\cf6{/* add bit to mask */}}{\cf2{}}}\par\pard
+\cbpat1{                    {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf12{case}} {\cf2{}}{\cf3{'A'}}{\cf2{}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{FirstADPin}} {\cf11{==}} {\cf2{BadADNum}}{\cf11{)}}{\cf2{}}{\cf6{/* no AD defined yet */}}{\cf2{}}}\par\pard
+\cbpat1{                        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                            FirstADPin}} {\cf11{=}} {\cf2{i}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{                            NumADChannels}}{\cf11{++;}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf12{else}}   {\cf2{}}{\cf6{/* AD pin sequence has started be sure its OK */}}{\cf2{}}}\par\pard
+\cbpat1{                        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}                            {\cf6{/* this test for non-contigious assume we are scanning}}}\par\pard
+\cbpat1{{\cf6{                               right to left through the string */}}{\cf2{}}}\par\pard
+\cbpat1{                            {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{i}} {\cf11{!= (}}{\cf2{FirstADPin}} {\cf11{+}} {\cf2{NumADChannels}}{\cf11{))}}}\par\pard
+\cbpat1{{\cf2{}}                                {\cf12{return}} {\cf2{ADS{1}{2}_Err}}{\cf11{;}}  {\cf2{}}{\cf6{/* AD pins not contiguious */}}{\cf2{}}}\par\pard
+\cbpat1{                            {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{                                NumADChannels}}{\cf11{++;}}}\par\pard
+\cbpat1{{\cf2{}}                        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf12{default}} {\cf2{}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf12{return}} {\cf2{ADS{1}{2}_Err}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{NumADChannels}} {\cf11{!=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{)}}  {\cf2{}}{\cf6{/* if we requested A/D channels, set them up */}}{\cf2{}}}\par\pard
+\cbpat1{        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf6{/* power up the a/d converter */}}{\cf2{}\par\pard
+\cbpat1{            ATDCTL{2}}} {\cf11{|=}} {\cf2{_S{1}{2}_ADPU}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf6{/* set up conversion sequnce length based on number of A/D channels}}}\par\pard
+\cbpat1{{\cf6{              requested. Disable the FIFO mode. set Freeze mode behavior */}}{\cf2{}\par\pard
+\cbpat1{            ATDCTL{3}}} {\cf11{= ((}}{\cf2{NumADChannels}} {\cf11{<<}} {\cf2{ChanShift}}{\cf11{) |}} {\cf2{ADFreezeMode}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf6{/* set up for {1}{0} bit mode with #defined sample times & ADClock divisor */}}{\cf2{}\par\pard
+\cbpat1{            ATDCTL{4}}} {\cf11{= (}}{\cf2{ADSampTime}} {\cf11{<<}} {\cf2{ADSampShift}}{\cf11{) |}} {\cf2{ADClockDivBits}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf6{/* set up for right justified unsigned data, continuous conversions */}}{\cf2{}\par\pard
+\cbpat1{            ATDCTL{5}}} {\cf11{=}} {\cf2{_S{1}{2}_DJM}} {\cf11{|}} {\cf2{_S{1}{2}_SCAN}} {\cf11{|}} {\cf2{_S{1}{2}_MULT}} {\cf11{|}} {\cf2{FirstADPin}} {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf6{/* the '{9}S{1}{2}C{3}{2} Device User Guide says to program ATDDIEN for all bits}}}\par\pard
+\cbpat1{{\cf6{       that will be 'standard I/O' It doesn't make sense to me to program}}}\par\pard
+\cbpat1{{\cf6{       the input buffer for output pins, but that's what I'll do, 'cause}}}\par\pard
+\cbpat1{{\cf6{       they said to... */}}{\cf2{}\par\pard
+\cbpat1{    ATDDIEN{1}}} {\cf11{= (}} {\cf2{InputPins}} {\cf11{|}} {\cf2{OutputPins}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf6{/* set the DDR for any output pins */}}{\cf2{}\par\pard
+\cbpat1{    DDRAD}} {\cf11{=}} {\cf2{OutputPins}} {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{return}} {\cf2{ADS{1}{2}_OK}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{         ADS{1}{2}_ReadADPin}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{         char PinNumber   the Port AD pin number to read the analog value from}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{         the result ({1}{0} bits right justified) if the pin number is legal,}}}\par\pard
+\cbpat1{{\cf6{         -{1} otherwise.}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{         reads and returns a/d results from the appropriate registers.}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{         None.}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{         J. Edward Carryer, {0}{6}/{2}{2}/{0}{4} {2}{2}:{0}{9}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{short}} {\cf2{}}{\cf15{ADS{1}{2}_ReadADPin}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{unsigned char}} {\cf2{pinNumber}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf14{volatile}} {\cf2{}}{\cf13{unsigned int}} {\cf2{}}{\cf11{*}}{\cf2{pADResult}} {\cf11{= &}}{\cf2{ATDDR{0}}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{((}}{\cf2{pinNumber}} {\cf11{>=}} {\cf2{BadADNum}}{\cf11{) ||}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf11{(}}{\cf2{pinNumber}} {\cf11{> (}}{\cf2{FirstADPin}} {\cf11{+}} {\cf2{NumADChannels}}{\cf11{)) ||}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf11{(}}{\cf2{pinNumber}} {\cf11{<}} {\cf2{FirstADPin}}{\cf11{))}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf12{return}} {\cf2{}}{\cf11{(-}}{\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf12{return}} {\cf2{}}{\cf11{(*(}}{\cf2{pADResult}} {\cf11{+ (}}{\cf2{pinNumber}}{\cf11{-}}{\cf2{FirstADPin}}{\cf11{)));}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*------------------------------- Footnotes -------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#ifdef TEST}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <stdio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <timers{1}{2}.h>}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{main}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{OutValues}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Starting Port A/D library test}} {\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Bit {0}-{3} are Ana, bits {4}&{5} are digital in, bits {6}&{7} digital out}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf15{ADS{1}{2}_ReadADPin}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{) >=}} {\cf2{}}{\cf4{{0}}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Read before init succeeded, this is a problem}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Read before init failed, as it should}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf15{ADS{1}{2}_Init}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"AAIIAAAA"}}{\cf2{}}{\cf11{) ==}} {\cf2{ADS{1}{2}_OK}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Init in {2} analog blocks succeeded, this is a problem}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Init in {2} analog blocks failed, as it should}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf15{ADS{1}{2}_Init}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"OOIIAAAAA"}}{\cf2{}}{\cf11{) ==}} {\cf2{ADS{1}{2}_OK}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Init with too many pins succeeded, this is a problem}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Init with too many pins failed, as it should}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf15{ADS{1}{2}_Init}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"OOIIAAAi"}}{\cf2{}}{\cf11{) ==}} {\cf2{ADS{1}{2}_OK}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Init with bad pin mode succeeded, this is a problem}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Init with bad pin mode failed, as it should}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf15{ADS{1}{2}_Init}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"OOIIAAAA"}}{\cf2{}}{\cf11{) ==}} {\cf2{ADS{1}{2}_OK}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Init with good mode succeeded, as it should}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"Init with good mode failed, this is a problem}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf15{TMRS{1}{2}_Init}}{\cf2{}}{\cf11{(}}{\cf2{TMRS{1}{2}_RATE_{8}MS}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{while}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf6{/* cycle through the {4} values on the output pins*/}}{\cf2{}\par\pard
+\cbpat1{            PTAD}} {\cf11{= (}}{\cf2{OutValues}} {\cf11{%}}{\cf2{}}{\cf4{{4}}}{\cf2{}}{\cf11{)<<}}{\cf2{}}{\cf4{{6}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{printf}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{" Ch{0} = %d, Ch{1} = %d, Ch{2} = %d, Ch{3} = %d, Input = %x, Output = %x}} {\cf7{\\r}}{\cf3{"}}{\cf2{}}{\cf11{,}}}\par\pard
+\cbpat1{{\cf2{}}                   {\cf15{ADS{1}{2}_ReadADPin}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{),}} {\cf2{}}{\cf15{ADS{1}{2}_ReadADPin}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{),}} {\cf2{}}{\cf15{ADS{1}{2}_ReadADPin}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{2}}}{\cf2{}}{\cf11{),}}}\par\pard
+\cbpat1{{\cf2{}}                   {\cf15{ADS{1}{2}_ReadADPin}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{3}}}{\cf2{}}{\cf11{),}} {\cf2{PTIAD}} {\cf11{& (}}{\cf2{BIT{4}HI}} {\cf11{|}} {\cf2{BIT{5}HI}}{\cf11{),}}}\par\pard
+\cbpat1{{\cf2{                   PTAD}} {\cf11{& (}}{\cf2{BIT{6}HI}} {\cf11{|}} {\cf2{BIT{7}HI}}{\cf11{) );}}}\par\pard
+\cbpat1{{\cf2{            OutValues}}{\cf11{++;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{TMRS{1}{2}_InitTimer}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{,}} {\cf2{}}{\cf4{{6}{1}}}{\cf2{}}{\cf11{);}} {\cf2{}}{\cf6{/* {0}.{5}s w/ {8}.{1}{9}mS interval */}}{\cf2{}}}\par\pard
+\cbpat1{            {\cf12{while}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf15{TMRS{1}{2}_IsTimerExpired}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{) !=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}} {\cf6{/* TEST */}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/*------------------------------ End of file ------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}}

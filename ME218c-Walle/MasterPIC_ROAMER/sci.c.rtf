@@ -1,0 +1,61 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf8{#include <htc.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Types.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"sci.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// Baudrate, assuming {8}MHz & the register settings below}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define BAUD{9}_{6}K ({2}{0}{7})}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define BAUD{1}{9}_{2}K {1}{0}{3}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// core code for sci(USART) communications on PIC {1}{6}F{6}{9}{0}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{USART_Init}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf6{/*// TXSTA = set TXEN and BRGH, all others clear}}}\par\pard
+\cbpat1{{\cf6{    TXEN = {1};}}}\par\pard
+\cbpat1{{\cf6{    BRGH = {1};}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{    // RCSTA = Set SPEN & CREN, all others clear}}}\par\pard
+\cbpat1{{\cf6{    SPEN = {1};}}}\par\pard
+\cbpat1{{\cf6{    CREN = {1};}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{    // BAUDCTL = set BRG{1}{6}, all others clear}}}\par\pard
+\cbpat1{{\cf6{    BRG{1}{6} = {1};}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{    // Baudrate, assuming {8}MHz & the prior register settings}}}\par\pard
+\cbpat1{{\cf6{    //SPBRGH = (BAUD{9}_{6}K >> {8});}}}\par\pard
+\cbpat1{{\cf6{    //SPBRG = (BAUD{9}_{6}K & {0}xFF);}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{    // disable the analog function on the RX pin}}}\par\pard
+\cbpat1{{\cf6{    ANS{1}{1} = {0};}}}\par\pard
+\cbpat1{{\cf6{    */}}{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{bit}} {\cf15{kbhit}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf6{/*if ( RCIF == {1})}}}\par\pard
+\cbpat1{{\cf6{    	return ({1} );}}}\par\pard
+\cbpat1{{\cf6{    else}}}\par\pard
+\cbpat1{{\cf6{    	return ( {0} );*/}}{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{return}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}}  {\cf2{}}{\cf15{putch}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{unsigned char}} {\cf2{Byte{2}Send}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf6{/*while ( TXIF != {1})}}}\par\pard
+\cbpat1{{\cf6{       ;   // wait for room to exmit}}}\par\pard
+\cbpat1{{\cf6{    TXREG = Byte{2}Send;}}}\par\pard
+\cbpat1{{\cf6{    return;*/}}{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{return}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{char}} {\cf2{}}{\cf15{getche}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf6{/*while ( RCIF != {1})}}}\par\pard
+\cbpat1{{\cf6{       ; // wait for cahr to be ready}}}\par\pard
+\cbpat1{{\cf6{    return ( RCREG );*/}}{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{return}} {\cf2{RCREG}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}}

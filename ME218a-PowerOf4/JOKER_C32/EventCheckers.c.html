@@ -1,0 +1,418 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>EventCheckers.c</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><a name="EventCheckers.c_1"></a><span class="hl lin">    1 </span><span class="hl slc">// Event Checking functions for sample</span>
+<a name="EventCheckers.c_2"></a><span class="hl lin">    2 </span>
+<a name="EventCheckers.c_3"></a><span class="hl lin">    3 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Configure.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_4"></a><span class="hl lin">    4 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Framework.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_5"></a><span class="hl lin">    5 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_General.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_6"></a><span class="hl lin">    6 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Events.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_7"></a><span class="hl lin">    7 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_PostList.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_8"></a><span class="hl lin">    8 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;EventCheckers.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_9"></a><span class="hl lin">    9 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Timers.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_10"></a><span class="hl lin">   10 </span><span class="hl ppc">#include &lt;ME218_C32.h&gt;</span>
+<a name="EventCheckers.c_11"></a><span class="hl lin">   11 </span><span class="hl ppc">#include &lt;stdio.h&gt;</span>
+<a name="EventCheckers.c_12"></a><span class="hl lin">   12 </span><span class="hl ppc">#include &lt;string.h&gt;</span>
+<a name="EventCheckers.c_13"></a><span class="hl lin">   13 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ADS12.H&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_14"></a><span class="hl lin">   14 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;PWMS12.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_15"></a><span class="hl lin">   15 </span>
+<a name="EventCheckers.c_16"></a><span class="hl lin">   16 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;PortSampleSM.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_17"></a><span class="hl lin">   17 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;MotorSM.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_18"></a><span class="hl lin">   18 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;BatMorseSM.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_19"></a><span class="hl lin">   19 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ComSM.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_20"></a><span class="hl lin">   20 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;Lighting.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_21"></a><span class="hl lin">   21 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;GameplaySM.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_22"></a><span class="hl lin">   22 </span>
+<a name="EventCheckers.c_23"></a><span class="hl lin">   23 </span><span class="hl slc">// This include will pull in all of the headers from the service modules</span>
+<a name="EventCheckers.c_24"></a><span class="hl lin">   24 </span><span class="hl slc">// providing the prototypes for all of the post functions</span>
+<a name="EventCheckers.c_25"></a><span class="hl lin">   25 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_ServiceHeaders.h&quot;</span><span class="hl ppc"></span>
+<a name="EventCheckers.c_26"></a><span class="hl lin">   26 </span>
+<a name="EventCheckers.c_27"></a><span class="hl lin">   27 </span><span class="hl slc">///********************Module Defines *******************/</span>
+<a name="EventCheckers.c_28"></a><span class="hl lin">   28 </span><span class="hl ppc">#define STROBELINE 	PTT_PTT3</span>
+<a name="EventCheckers.c_29"></a><span class="hl lin">   29 </span><span class="hl ppc">#define ACKLINE 	PTT_PTT7</span>
+<a name="EventCheckers.c_30"></a><span class="hl lin">   30 </span><span class="hl ppc">#define PEDAL_PIN   6</span>
+<a name="EventCheckers.c_31"></a><span class="hl lin">   31 </span>
+<a name="EventCheckers.c_32"></a><span class="hl lin">   32 </span><span class="hl slc">//Defines for PEDAL event checker</span>
+<a name="EventCheckers.c_33"></a><span class="hl lin">   33 </span><span class="hl ppc">#define THRESH_0 100</span><span class="hl slc">//340 //100  Pedal DOWN Threshold</span>
+<a name="EventCheckers.c_34"></a><span class="hl lin">   34 </span><span class="hl ppc"></span><span class="hl ppc">#define THRESH_1 150</span><span class="hl slc">//345 //200</span>
+<a name="EventCheckers.c_35"></a><span class="hl lin">   35 </span><span class="hl ppc"></span><span class="hl ppc">#define THRESH_2 200</span><span class="hl slc">//350 //300</span>
+<a name="EventCheckers.c_36"></a><span class="hl lin">   36 </span><span class="hl ppc"></span><span class="hl ppc">#define THRESH_3 250</span><span class="hl slc">//355 //400</span>
+<a name="EventCheckers.c_37"></a><span class="hl lin">   37 </span><span class="hl ppc"></span><span class="hl ppc">#define THRESH_4 300</span><span class="hl slc">//360 //500</span>
+<a name="EventCheckers.c_38"></a><span class="hl lin">   38 </span><span class="hl ppc"></span><span class="hl ppc">#define THRESH_5 350</span><span class="hl slc">//365 //600</span>
+<a name="EventCheckers.c_39"></a><span class="hl lin">   39 </span><span class="hl ppc"></span><span class="hl ppc">#define THRESH_6 400</span><span class="hl slc">//370 //700</span>
+<a name="EventCheckers.c_40"></a><span class="hl lin">   40 </span><span class="hl ppc"></span><span class="hl ppc">#define THRESH_7 450</span><span class="hl slc">//375 //800</span>
+<a name="EventCheckers.c_41"></a><span class="hl lin">   41 </span><span class="hl ppc"></span><span class="hl ppc">#define THRESH_8 525</span><span class="hl slc">//380 //900  Pedal UP Threshold</span>
+<a name="EventCheckers.c_42"></a><span class="hl lin">   42 </span><span class="hl ppc"></span>
+<a name="EventCheckers.c_43"></a><span class="hl lin">   43 </span>
+<a name="EventCheckers.c_44"></a><span class="hl lin">   44 </span><span class="hl com">/**********************************************************/</span>
+<a name="EventCheckers.c_45"></a><span class="hl lin">   45 </span>
+<a name="EventCheckers.c_46"></a><span class="hl lin">   46 </span><span class="hl com">/* Event in EventCheckers.c</span>
+<a name="EventCheckers.c_47"></a><span class="hl lin">   47 </span><span class="hl com">               FALLING_EDGE,</span>
+<a name="EventCheckers.c_48"></a><span class="hl lin">   48 </span><span class="hl com">               RISING_EDGE,</span>
+<a name="EventCheckers.c_49"></a><span class="hl lin">   49 </span><span class="hl com">               PEDAL,</span>
+<a name="EventCheckers.c_50"></a><span class="hl lin">   50 </span><span class="hl com">               SIDEBUTTON,</span>
+<a name="EventCheckers.c_51"></a><span class="hl lin">   51 </span><span class="hl com">               BEAMBREAK,</span>
+<a name="EventCheckers.c_52"></a><span class="hl lin">   52 </span><span class="hl com">               OILSLICK,</span>
+<a name="EventCheckers.c_53"></a><span class="hl lin">   53 </span><span class="hl com">               DEFUSE,</span>
+<a name="EventCheckers.c_54"></a><span class="hl lin">   54 </span><span class="hl com">               DETONATE,</span>
+<a name="EventCheckers.c_55"></a><span class="hl lin">   55 </span><span class="hl com">               BTOP, BBOT, BMID, JTOP, JBOT, JMID,  //game events</span>
+<a name="EventCheckers.c_56"></a><span class="hl lin">   56 </span><span class="hl com">               STROBE_RISE,</span>
+<a name="EventCheckers.c_57"></a><span class="hl lin">   57 </span><span class="hl com">               STROBE_FALL,</span>
+<a name="EventCheckers.c_58"></a><span class="hl lin">   58 </span><span class="hl com">               ACK_RISE,</span>
+<a name="EventCheckers.c_59"></a><span class="hl lin">   59 </span><span class="hl com">*/</span>
+<a name="EventCheckers.c_60"></a><span class="hl lin">   60 </span>
+<a name="EventCheckers.c_61"></a><span class="hl lin">   61 </span>
+<a name="EventCheckers.c_62"></a><span class="hl lin">   62 </span><span class="hl com">/**********************************************************/</span>
+<a name="EventCheckers.c_63"></a><span class="hl lin">   63 </span>
+<a name="EventCheckers.c_64"></a><span class="hl lin">   64 </span>
+<a name="EventCheckers.c_65"></a><span class="hl lin">   65 </span><span class="hl com">/* GAME EVENT CHECKERS */</span>
+<a name="EventCheckers.c_66"></a><span class="hl lin">   66 </span><span class="hl slc">//--------------------------------------------------------------</span>
+<a name="EventCheckers.c_67"></a><span class="hl lin">   67 </span>
+<a name="EventCheckers.c_68"></a><span class="hl lin">   68 </span>
+<a name="EventCheckers.c_69"></a><span class="hl lin">   69 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_70"></a><span class="hl lin">   70 </span><span class="hl com">/*COM LINK*/</span>
+<a name="EventCheckers.c_71"></a><span class="hl lin">   71 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_72"></a><span class="hl lin">   72 </span><span class="hl slc">// Posts Event Types: STROBE_RISE or STROBE_FALL</span>
+<a name="EventCheckers.c_73"></a><span class="hl lin">   73 </span>boolean <span class="hl kwd">CheckStrobeEvents</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_74"></a><span class="hl lin">   74 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_75"></a><span class="hl lin">   75 </span>    <span class="hl kwb">static unsigned char</span> LastStrobeState <span class="hl opt">=</span> LO<span class="hl opt">;</span> <span class="hl slc">//default strobe low</span>
+<a name="EventCheckers.c_76"></a><span class="hl lin">   76 </span>    <span class="hl kwb">unsigned char</span> CurrentStrobeState<span class="hl opt">;</span>
+<a name="EventCheckers.c_77"></a><span class="hl lin">   77 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_78"></a><span class="hl lin">   78 </span>    ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_79"></a><span class="hl lin">   79 </span>
+<a name="EventCheckers.c_80"></a><span class="hl lin">   80 </span>    <span class="hl slc">//if ((PTT &amp; BIT3HI) != BIT3HI)</span>
+<a name="EventCheckers.c_81"></a><span class="hl lin">   81 </span>    <span class="hl kwa">if</span> <span class="hl opt">((</span>STROBELINE<span class="hl opt">)==</span>LO<span class="hl opt">)</span>
+<a name="EventCheckers.c_82"></a><span class="hl lin">   82 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_83"></a><span class="hl lin">   83 </span>            CurrentStrobeState <span class="hl opt">=</span> LO<span class="hl opt">;</span> <span class="hl slc">//strobe low &lt;idle state&gt;</span>
+<a name="EventCheckers.c_84"></a><span class="hl lin">   84 </span>            <span class="hl slc">//printf(&quot;low\r\n&quot;);</span>
+<a name="EventCheckers.c_85"></a><span class="hl lin">   85 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_86"></a><span class="hl lin">   86 </span>    <span class="hl kwa">else</span>
+<a name="EventCheckers.c_87"></a><span class="hl lin">   87 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_88"></a><span class="hl lin">   88 </span>            CurrentStrobeState <span class="hl opt">=</span> HI<span class="hl opt">;</span> <span class="hl slc">//strobe high</span>
+<a name="EventCheckers.c_89"></a><span class="hl lin">   89 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_90"></a><span class="hl lin">   90 </span>    <span class="hl slc">//printf(&quot;eventcheckers: strobe state %i\r\n&quot;, CurrentStrobeState);</span>
+<a name="EventCheckers.c_91"></a><span class="hl lin">   91 </span>
+<a name="EventCheckers.c_92"></a><span class="hl lin">   92 </span>    <span class="hl kwa">if</span> <span class="hl opt">(</span>CurrentStrobeState <span class="hl opt">!=</span> LastStrobeState<span class="hl opt">)</span>   <span class="hl slc">//check if different</span>
+<a name="EventCheckers.c_93"></a><span class="hl lin">   93 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_94"></a><span class="hl lin">   94 </span>            <span class="hl slc">//printf(&quot;checking change in strobe\r\n&quot;);</span>
+<a name="EventCheckers.c_95"></a><span class="hl lin">   95 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>CurrentStrobeState <span class="hl opt">!=</span>LO<span class="hl opt">)</span>   <span class="hl slc">//check if HIGH</span>
+<a name="EventCheckers.c_96"></a><span class="hl lin">   96 </span>                <span class="hl opt">{</span>
+<a name="EventCheckers.c_97"></a><span class="hl lin">   97 </span>                    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> STROBE_RISE<span class="hl opt">;</span>
+<a name="EventCheckers.c_98"></a><span class="hl lin">   98 </span>                    ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> HI<span class="hl opt">;</span>
+<a name="EventCheckers.c_99"></a><span class="hl lin">   99 </span>                    <span class="hl kwd">PostComSM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_100"></a><span class="hl lin">  100 </span>                <span class="hl opt">}</span>
+<a name="EventCheckers.c_101"></a><span class="hl lin">  101 </span>            <span class="hl kwa">else</span>
+<a name="EventCheckers.c_102"></a><span class="hl lin">  102 </span>                <span class="hl opt">{</span>
+<a name="EventCheckers.c_103"></a><span class="hl lin">  103 </span>                    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> STROBE_FALL<span class="hl opt">;</span>
+<a name="EventCheckers.c_104"></a><span class="hl lin">  104 </span>                    ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_105"></a><span class="hl lin">  105 </span>                    <span class="hl kwd">PostComSM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_106"></a><span class="hl lin">  106 </span>                <span class="hl opt">}</span>
+<a name="EventCheckers.c_107"></a><span class="hl lin">  107 </span>            ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_108"></a><span class="hl lin">  108 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_109"></a><span class="hl lin">  109 </span>
+<a name="EventCheckers.c_110"></a><span class="hl lin">  110 </span>    LastStrobeState <span class="hl opt">=</span> CurrentStrobeState<span class="hl opt">;</span>
+<a name="EventCheckers.c_111"></a><span class="hl lin">  111 </span>    <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_112"></a><span class="hl lin">  112 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_113"></a><span class="hl lin">  113 </span>
+<a name="EventCheckers.c_114"></a><span class="hl lin">  114 </span><span class="hl slc">// Posts Event Types: ACK_RISE</span>
+<a name="EventCheckers.c_115"></a><span class="hl lin">  115 </span>boolean <span class="hl kwd">CheckAckEvents</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_116"></a><span class="hl lin">  116 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_117"></a><span class="hl lin">  117 </span>    <span class="hl kwb">static unsigned char</span> LastAckState <span class="hl opt">=</span> LO<span class="hl opt">;</span>
+<a name="EventCheckers.c_118"></a><span class="hl lin">  118 </span>    <span class="hl kwb">unsigned char</span> CurrentAckState<span class="hl opt">;</span>
+<a name="EventCheckers.c_119"></a><span class="hl lin">  119 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_120"></a><span class="hl lin">  120 </span>    ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_121"></a><span class="hl lin">  121 </span>
+<a name="EventCheckers.c_122"></a><span class="hl lin">  122 </span>    <span class="hl kwa">if</span> <span class="hl opt">((</span>ACKLINE<span class="hl opt">)==</span>LO<span class="hl opt">)</span>
+<a name="EventCheckers.c_123"></a><span class="hl lin">  123 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_124"></a><span class="hl lin">  124 </span>            CurrentAckState <span class="hl opt">=</span> LO<span class="hl opt">;</span> <span class="hl slc">//ack low &lt;idle state&gt;</span>
+<a name="EventCheckers.c_125"></a><span class="hl lin">  125 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_126"></a><span class="hl lin">  126 </span>    <span class="hl kwa">else</span>
+<a name="EventCheckers.c_127"></a><span class="hl lin">  127 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_128"></a><span class="hl lin">  128 </span>            CurrentAckState <span class="hl opt">=</span> HI<span class="hl opt">;</span> <span class="hl slc">//ack high</span>
+<a name="EventCheckers.c_129"></a><span class="hl lin">  129 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_130"></a><span class="hl lin">  130 </span>
+<a name="EventCheckers.c_131"></a><span class="hl lin">  131 </span>    <span class="hl kwa">if</span> <span class="hl opt">(</span>CurrentAckState <span class="hl opt">!=</span> LastAckState<span class="hl opt">)</span>   <span class="hl slc">//check if different</span>
+<a name="EventCheckers.c_132"></a><span class="hl lin">  132 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_133"></a><span class="hl lin">  133 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>CurrentAckState <span class="hl opt">!=</span>LO<span class="hl opt">)</span>   <span class="hl slc">//check if HIGH</span>
+<a name="EventCheckers.c_134"></a><span class="hl lin">  134 </span>                <span class="hl opt">{</span>
+<a name="EventCheckers.c_135"></a><span class="hl lin">  135 </span>                    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> ACK_RISE<span class="hl opt">;</span>
+<a name="EventCheckers.c_136"></a><span class="hl lin">  136 </span>                    ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_137"></a><span class="hl lin">  137 </span>                    <span class="hl kwd">PostComSM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_138"></a><span class="hl lin">  138 </span>
+<a name="EventCheckers.c_139"></a><span class="hl lin">  139 </span>                <span class="hl opt">}</span>
+<a name="EventCheckers.c_140"></a><span class="hl lin">  140 </span>            ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_141"></a><span class="hl lin">  141 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_142"></a><span class="hl lin">  142 </span>
+<a name="EventCheckers.c_143"></a><span class="hl lin">  143 </span>    LastAckState <span class="hl opt">=</span> CurrentAckState<span class="hl opt">;</span>
+<a name="EventCheckers.c_144"></a><span class="hl lin">  144 </span>    <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_145"></a><span class="hl lin">  145 </span>
+<a name="EventCheckers.c_146"></a><span class="hl lin">  146 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_147"></a><span class="hl lin">  147 </span>
+<a name="EventCheckers.c_148"></a><span class="hl lin">  148 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_149"></a><span class="hl lin">  149 </span><span class="hl com">/*GAME PLAY*/</span>
+<a name="EventCheckers.c_150"></a><span class="hl lin">  150 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_151"></a><span class="hl lin">  151 </span><span class="hl slc">// Posts Event Type: JTOP</span>
+<a name="EventCheckers.c_152"></a><span class="hl lin">  152 </span>boolean <span class="hl kwd">CheckJTopEvent</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_153"></a><span class="hl lin">  153 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_154"></a><span class="hl lin">  154 </span>    <span class="hl kwb">static unsigned char</span> LastPinState <span class="hl opt">=</span> LO<span class="hl opt">;</span>
+<a name="EventCheckers.c_155"></a><span class="hl lin">  155 </span>    <span class="hl kwb">unsigned char</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_156"></a><span class="hl lin">  156 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_157"></a><span class="hl lin">  157 </span>
+<a name="EventCheckers.c_158"></a><span class="hl lin">  158 </span>    CurrentPinState <span class="hl opt">=</span> <span class="hl kwd">GetPseudoPortState</span><span class="hl opt">(</span>TOP_LIMIT_POS<span class="hl opt">);</span>
+<a name="EventCheckers.c_159"></a><span class="hl lin">  159 </span>    <span class="hl slc">// check for pin high and different from last time</span>
+<a name="EventCheckers.c_160"></a><span class="hl lin">  160 </span>    <span class="hl kwa">if</span> <span class="hl opt">( (</span>CurrentPinState <span class="hl opt">!=</span> LastPinState<span class="hl opt">) &amp;&amp;</span>
+<a name="EventCheckers.c_161"></a><span class="hl lin">  161 </span>            <span class="hl opt">(</span>CurrentPinState <span class="hl opt">==</span> LO<span class="hl opt">) )</span>
+<a name="EventCheckers.c_162"></a><span class="hl lin">  162 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_163"></a><span class="hl lin">  163 </span>            <span class="hl slc">// event detected, so post detected event</span>
+<a name="EventCheckers.c_164"></a><span class="hl lin">  164 </span>            ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_165"></a><span class="hl lin">  165 </span>            ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> JTOP<span class="hl opt">;</span>
+<a name="EventCheckers.c_166"></a><span class="hl lin">  166 </span>            ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_167"></a><span class="hl lin">  167 </span>            <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_168"></a><span class="hl lin">  168 </span>
+<a name="EventCheckers.c_169"></a><span class="hl lin">  169 </span>            <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;JTOP Event Detected</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="EventCheckers.c_170"></a><span class="hl lin">  170 </span>
+<a name="EventCheckers.c_171"></a><span class="hl lin">  171 </span>            ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_172"></a><span class="hl lin">  172 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_173"></a><span class="hl lin">  173 </span>    LastPinState <span class="hl opt">=</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_174"></a><span class="hl lin">  174 </span>
+<a name="EventCheckers.c_175"></a><span class="hl lin">  175 </span>    <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_176"></a><span class="hl lin">  176 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_177"></a><span class="hl lin">  177 </span>
+<a name="EventCheckers.c_178"></a><span class="hl lin">  178 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_179"></a><span class="hl lin">  179 </span><span class="hl slc">// Posts Event Type: JBOT</span>
+<a name="EventCheckers.c_180"></a><span class="hl lin">  180 </span>boolean <span class="hl kwd">CheckJBotEvent</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_181"></a><span class="hl lin">  181 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_182"></a><span class="hl lin">  182 </span>    <span class="hl kwb">static unsigned char</span> LastPinState <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_183"></a><span class="hl lin">  183 </span>    <span class="hl kwb">unsigned char</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_184"></a><span class="hl lin">  184 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_185"></a><span class="hl lin">  185 </span>
+<a name="EventCheckers.c_186"></a><span class="hl lin">  186 </span>    CurrentPinState <span class="hl opt">=</span> <span class="hl kwd">GetPseudoPortState</span><span class="hl opt">(</span>BOTTOM_LIMIT_POS<span class="hl opt">);</span>
+<a name="EventCheckers.c_187"></a><span class="hl lin">  187 </span>    <span class="hl slc">// check for pin high and different from last time</span>
+<a name="EventCheckers.c_188"></a><span class="hl lin">  188 </span>    <span class="hl kwa">if</span> <span class="hl opt">( (</span>CurrentPinState <span class="hl opt">!=</span> LastPinState<span class="hl opt">) &amp;&amp;</span>
+<a name="EventCheckers.c_189"></a><span class="hl lin">  189 </span>            <span class="hl opt">(</span>CurrentPinState <span class="hl opt">==</span> LO<span class="hl opt">) )</span>
+<a name="EventCheckers.c_190"></a><span class="hl lin">  190 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_191"></a><span class="hl lin">  191 </span>            <span class="hl slc">// event detected, so post detected event</span>
+<a name="EventCheckers.c_192"></a><span class="hl lin">  192 </span>            ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_193"></a><span class="hl lin">  193 </span>            ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> JBOT<span class="hl opt">;</span>
+<a name="EventCheckers.c_194"></a><span class="hl lin">  194 </span>            ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_195"></a><span class="hl lin">  195 </span>            <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_196"></a><span class="hl lin">  196 </span>
+<a name="EventCheckers.c_197"></a><span class="hl lin">  197 </span>            <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;JBOT Event Detected</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="EventCheckers.c_198"></a><span class="hl lin">  198 </span>
+<a name="EventCheckers.c_199"></a><span class="hl lin">  199 </span>            ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_200"></a><span class="hl lin">  200 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_201"></a><span class="hl lin">  201 </span>    LastPinState <span class="hl opt">=</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_202"></a><span class="hl lin">  202 </span>
+<a name="EventCheckers.c_203"></a><span class="hl lin">  203 </span>    <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_204"></a><span class="hl lin">  204 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_205"></a><span class="hl lin">  205 </span>
+<a name="EventCheckers.c_206"></a><span class="hl lin">  206 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_207"></a><span class="hl lin">  207 </span><span class="hl slc">// Posts Event Type: OILSLICK</span>
+<a name="EventCheckers.c_208"></a><span class="hl lin">  208 </span>boolean <span class="hl kwd">CheckOilSlickEvent</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_209"></a><span class="hl lin">  209 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_210"></a><span class="hl lin">  210 </span>    <span class="hl kwb">static unsigned char</span> LastPinState <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_211"></a><span class="hl lin">  211 </span>    <span class="hl kwb">unsigned char</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_212"></a><span class="hl lin">  212 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_213"></a><span class="hl lin">  213 </span>
+<a name="EventCheckers.c_214"></a><span class="hl lin">  214 </span>    CurrentPinState <span class="hl opt">=</span> <span class="hl kwd">GetPseudoPortState</span><span class="hl opt">(</span>OIL_SLICK_POS<span class="hl opt">);</span>
+<a name="EventCheckers.c_215"></a><span class="hl lin">  215 </span>    <span class="hl slc">// check for pin high and different from last time</span>
+<a name="EventCheckers.c_216"></a><span class="hl lin">  216 </span>    <span class="hl kwa">if</span> <span class="hl opt">( (</span>CurrentPinState <span class="hl opt">!=</span> LastPinState<span class="hl opt">) &amp;&amp;</span>
+<a name="EventCheckers.c_217"></a><span class="hl lin">  217 </span>            <span class="hl opt">(</span>CurrentPinState <span class="hl opt">==</span> LO<span class="hl opt">) )</span>
+<a name="EventCheckers.c_218"></a><span class="hl lin">  218 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_219"></a><span class="hl lin">  219 </span>            <span class="hl slc">// event detected, so post detected event</span>
+<a name="EventCheckers.c_220"></a><span class="hl lin">  220 </span>            ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_221"></a><span class="hl lin">  221 </span>            ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> OILSLICK<span class="hl opt">;</span>
+<a name="EventCheckers.c_222"></a><span class="hl lin">  222 </span>            ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_223"></a><span class="hl lin">  223 </span>            <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_224"></a><span class="hl lin">  224 </span>
+<a name="EventCheckers.c_225"></a><span class="hl lin">  225 </span>            <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;OILSLICK Event Detected</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="EventCheckers.c_226"></a><span class="hl lin">  226 </span>
+<a name="EventCheckers.c_227"></a><span class="hl lin">  227 </span>            ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_228"></a><span class="hl lin">  228 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_229"></a><span class="hl lin">  229 </span>    LastPinState <span class="hl opt">=</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_230"></a><span class="hl lin">  230 </span>
+<a name="EventCheckers.c_231"></a><span class="hl lin">  231 </span>    <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_232"></a><span class="hl lin">  232 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_233"></a><span class="hl lin">  233 </span>
+<a name="EventCheckers.c_234"></a><span class="hl lin">  234 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_235"></a><span class="hl lin">  235 </span><span class="hl slc">// Posts Event Type: DETONATE</span>
+<a name="EventCheckers.c_236"></a><span class="hl lin">  236 </span>boolean <span class="hl kwd">CheckDetonateEvent</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_237"></a><span class="hl lin">  237 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_238"></a><span class="hl lin">  238 </span>    <span class="hl kwb">static unsigned char</span> LastPinState <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_239"></a><span class="hl lin">  239 </span>    <span class="hl kwb">unsigned char</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_240"></a><span class="hl lin">  240 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_241"></a><span class="hl lin">  241 </span>
+<a name="EventCheckers.c_242"></a><span class="hl lin">  242 </span>    CurrentPinState <span class="hl opt">=</span> <span class="hl kwd">GetPseudoPortState</span><span class="hl opt">(</span>BOMB_BUTTON_POS<span class="hl opt">);</span>
+<a name="EventCheckers.c_243"></a><span class="hl lin">  243 </span>    <span class="hl slc">// check for pin high and different from last time</span>
+<a name="EventCheckers.c_244"></a><span class="hl lin">  244 </span>    <span class="hl kwa">if</span> <span class="hl opt">( (</span>CurrentPinState <span class="hl opt">!=</span> LastPinState<span class="hl opt">) &amp;&amp;</span>
+<a name="EventCheckers.c_245"></a><span class="hl lin">  245 </span>            <span class="hl opt">(</span>CurrentPinState <span class="hl opt">==</span> LO<span class="hl opt">) )</span>
+<a name="EventCheckers.c_246"></a><span class="hl lin">  246 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_247"></a><span class="hl lin">  247 </span>            <span class="hl slc">// event detected, so post detected event</span>
+<a name="EventCheckers.c_248"></a><span class="hl lin">  248 </span>            ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_249"></a><span class="hl lin">  249 </span>            ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> DETONATE<span class="hl opt">;</span>
+<a name="EventCheckers.c_250"></a><span class="hl lin">  250 </span>            ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_251"></a><span class="hl lin">  251 </span>            <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_252"></a><span class="hl lin">  252 </span>            <span class="hl kwd">PostTimerSM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_253"></a><span class="hl lin">  253 </span>
+<a name="EventCheckers.c_254"></a><span class="hl lin">  254 </span>            <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;DETONATE Event Detected</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="EventCheckers.c_255"></a><span class="hl lin">  255 </span>
+<a name="EventCheckers.c_256"></a><span class="hl lin">  256 </span>            ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_257"></a><span class="hl lin">  257 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_258"></a><span class="hl lin">  258 </span>    LastPinState <span class="hl opt">=</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_259"></a><span class="hl lin">  259 </span>
+<a name="EventCheckers.c_260"></a><span class="hl lin">  260 </span>    <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_261"></a><span class="hl lin">  261 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_262"></a><span class="hl lin">  262 </span>
+<a name="EventCheckers.c_263"></a><span class="hl lin">  263 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_264"></a><span class="hl lin">  264 </span><span class="hl slc">// Posts Event Type: SIDEBUTTON</span>
+<a name="EventCheckers.c_265"></a><span class="hl lin">  265 </span>boolean <span class="hl kwd">CheckSideButtonEvent</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_266"></a><span class="hl lin">  266 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_267"></a><span class="hl lin">  267 </span>    <span class="hl kwb">static unsigned char</span> LastPinState <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_268"></a><span class="hl lin">  268 </span>    <span class="hl kwb">unsigned char</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_269"></a><span class="hl lin">  269 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_270"></a><span class="hl lin">  270 </span>
+<a name="EventCheckers.c_271"></a><span class="hl lin">  271 </span>    <span class="hl slc">//printf(&quot;I;m in SideButton Event Checker\r\n&quot;);</span>
+<a name="EventCheckers.c_272"></a><span class="hl lin">  272 </span>    <span class="hl kwa">if</span> <span class="hl opt">((</span><span class="hl kwd">QueryGameplaySM</span><span class="hl opt">()==</span>Wait4Response<span class="hl opt">) || (</span><span class="hl kwd">QueryGameplaySM</span><span class="hl opt">()==</span>ResponseRecorded<span class="hl opt">))</span>
+<a name="EventCheckers.c_273"></a><span class="hl lin">  273 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_274"></a><span class="hl lin">  274 </span>            CurrentPinState <span class="hl opt">=</span> <span class="hl kwd">GetPseudoPortState</span><span class="hl opt">(</span>SIDE_BUTTON_POS<span class="hl opt">);</span>
+<a name="EventCheckers.c_275"></a><span class="hl lin">  275 </span>            <span class="hl slc">// check for pin high and different from last time</span>
+<a name="EventCheckers.c_276"></a><span class="hl lin">  276 </span>            <span class="hl kwa">if</span> <span class="hl opt">( (</span>CurrentPinState <span class="hl opt">!=</span> LastPinState<span class="hl opt">) &amp;&amp;</span>
+<a name="EventCheckers.c_277"></a><span class="hl lin">  277 </span>                    <span class="hl opt">(</span>CurrentPinState <span class="hl opt">==</span> LO<span class="hl opt">) )</span>
+<a name="EventCheckers.c_278"></a><span class="hl lin">  278 </span>                <span class="hl opt">{</span>
+<a name="EventCheckers.c_279"></a><span class="hl lin">  279 </span>                    <span class="hl slc">// event detected, so post detected event</span>
+<a name="EventCheckers.c_280"></a><span class="hl lin">  280 </span>
+<a name="EventCheckers.c_281"></a><span class="hl lin">  281 </span>                    ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_282"></a><span class="hl lin">  282 </span>                    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> SIDEBUTTON<span class="hl opt">;</span>
+<a name="EventCheckers.c_283"></a><span class="hl lin">  283 </span>                    ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_284"></a><span class="hl lin">  284 </span>                    <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_285"></a><span class="hl lin">  285 </span>
+<a name="EventCheckers.c_286"></a><span class="hl lin">  286 </span>                    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;SIDEBUTTON Event Detected</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="EventCheckers.c_287"></a><span class="hl lin">  287 </span>
+<a name="EventCheckers.c_288"></a><span class="hl lin">  288 </span>                    ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_289"></a><span class="hl lin">  289 </span>                <span class="hl opt">}</span>
+<a name="EventCheckers.c_290"></a><span class="hl lin">  290 </span>            LastPinState <span class="hl opt">=</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_291"></a><span class="hl lin">  291 </span>
+<a name="EventCheckers.c_292"></a><span class="hl lin">  292 </span>            <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_293"></a><span class="hl lin">  293 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_294"></a><span class="hl lin">  294 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_295"></a><span class="hl lin">  295 </span>
+<a name="EventCheckers.c_296"></a><span class="hl lin">  296 </span>
+<a name="EventCheckers.c_297"></a><span class="hl lin">  297 </span><span class="hl slc">//-------------------------------------------</span>
+<a name="EventCheckers.c_298"></a><span class="hl lin">  298 </span><span class="hl slc">// Posts Event Type: BEAMBREAK</span>
+<a name="EventCheckers.c_299"></a><span class="hl lin">  299 </span>boolean <span class="hl kwd">CheckBeamBreakEvent</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_300"></a><span class="hl lin">  300 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_301"></a><span class="hl lin">  301 </span>    <span class="hl kwb">static unsigned char</span> LastPinState <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_302"></a><span class="hl lin">  302 </span>    <span class="hl kwb">unsigned char</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_303"></a><span class="hl lin">  303 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_304"></a><span class="hl lin">  304 </span>    <span class="hl kwa">if</span> <span class="hl opt">((</span><span class="hl kwd">QueryGameplaySM</span><span class="hl opt">()==</span>Wait4Response<span class="hl opt">) || (</span><span class="hl kwd">QueryGameplaySM</span><span class="hl opt">()==</span>ResponseRecorded<span class="hl opt">))</span>
+<a name="EventCheckers.c_305"></a><span class="hl lin">  305 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_306"></a><span class="hl lin">  306 </span>            CurrentPinState <span class="hl opt">=</span> <span class="hl kwd">GetPseudoPortState</span><span class="hl opt">(</span>LASER_BEAM_POS<span class="hl opt">);</span>
+<a name="EventCheckers.c_307"></a><span class="hl lin">  307 </span>            <span class="hl slc">// check for pin high and different from last time</span>
+<a name="EventCheckers.c_308"></a><span class="hl lin">  308 </span>            <span class="hl kwa">if</span> <span class="hl opt">( (</span>CurrentPinState <span class="hl opt">!=</span> LastPinState<span class="hl opt">) &amp;&amp;</span>
+<a name="EventCheckers.c_309"></a><span class="hl lin">  309 </span>                    <span class="hl opt">(</span>CurrentPinState <span class="hl opt">==</span> LO<span class="hl opt">) )</span>
+<a name="EventCheckers.c_310"></a><span class="hl lin">  310 </span>                <span class="hl opt">{</span>
+<a name="EventCheckers.c_311"></a><span class="hl lin">  311 </span>                    <span class="hl slc">// event detected, so post detected event</span>
+<a name="EventCheckers.c_312"></a><span class="hl lin">  312 </span>
+<a name="EventCheckers.c_313"></a><span class="hl lin">  313 </span>                    ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_314"></a><span class="hl lin">  314 </span>                    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> BEAMBREAK<span class="hl opt">;</span>
+<a name="EventCheckers.c_315"></a><span class="hl lin">  315 </span>                    ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="EventCheckers.c_316"></a><span class="hl lin">  316 </span>                    <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_317"></a><span class="hl lin">  317 </span>
+<a name="EventCheckers.c_318"></a><span class="hl lin">  318 </span>                    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;BEAMBREAK Event Detected</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="EventCheckers.c_319"></a><span class="hl lin">  319 </span>
+<a name="EventCheckers.c_320"></a><span class="hl lin">  320 </span>                    ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_321"></a><span class="hl lin">  321 </span>                <span class="hl opt">}</span>
+<a name="EventCheckers.c_322"></a><span class="hl lin">  322 </span>
+<a name="EventCheckers.c_323"></a><span class="hl lin">  323 </span>            LastPinState <span class="hl opt">=</span> CurrentPinState<span class="hl opt">;</span>
+<a name="EventCheckers.c_324"></a><span class="hl lin">  324 </span>
+<a name="EventCheckers.c_325"></a><span class="hl lin">  325 </span>            <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_326"></a><span class="hl lin">  326 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_327"></a><span class="hl lin">  327 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_328"></a><span class="hl lin">  328 </span><span class="hl com">/*PEDAL EVENTS */</span>
+<a name="EventCheckers.c_329"></a><span class="hl lin">  329 </span><span class="hl slc">//----------------------------------------------------</span>
+<a name="EventCheckers.c_330"></a><span class="hl lin">  330 </span><span class="hl slc">// Posts Event Type: PEDAL</span>
+<a name="EventCheckers.c_331"></a><span class="hl lin">  331 </span>boolean <span class="hl kwd">CheckPedalEvent</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">)</span>
+<a name="EventCheckers.c_332"></a><span class="hl lin">  332 </span><span class="hl opt">{</span>
+<a name="EventCheckers.c_333"></a><span class="hl lin">  333 </span>    <span class="hl kwb">static unsigned int</span> LastBand<span class="hl opt">;</span>
+<a name="EventCheckers.c_334"></a><span class="hl lin">  334 </span>    <span class="hl kwb">unsigned int</span> CurrentBand<span class="hl opt">;</span>
+<a name="EventCheckers.c_335"></a><span class="hl lin">  335 </span>    <span class="hl kwb">unsigned int</span> CurrentPinVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_336"></a><span class="hl lin">  336 </span>    boolean ReturnVal <span class="hl opt">=</span> False<span class="hl opt">;</span>
+<a name="EventCheckers.c_337"></a><span class="hl lin">  337 </span>
+<a name="EventCheckers.c_338"></a><span class="hl lin">  338 </span>    <span class="hl slc">// This function reads the current AD value of the pedal and returns an</span>
+<a name="EventCheckers.c_339"></a><span class="hl lin">  339 </span>    <span class="hl slc">// event if the PinVal has passed a band</span>
+<a name="EventCheckers.c_340"></a><span class="hl lin">  340 </span>
+<a name="EventCheckers.c_341"></a><span class="hl lin">  341 </span>    <span class="hl slc">// Read the Digital Value of Pedal Pin</span>
+<a name="EventCheckers.c_342"></a><span class="hl lin">  342 </span>    CurrentPinVal <span class="hl opt">=</span> <span class="hl kwd">ADS12_ReadADPin</span><span class="hl opt">(</span>PEDAL_PIN<span class="hl opt">);</span>
+<a name="EventCheckers.c_343"></a><span class="hl lin">  343 </span>
+<a name="EventCheckers.c_344"></a><span class="hl lin">  344 </span>    <span class="hl slc">//puts(&quot;I'm in Pedal Event Checker&quot;);</span>
+<a name="EventCheckers.c_345"></a><span class="hl lin">  345 </span>    <span class="hl slc">// Assign the band associated with Pin Value</span>
+<a name="EventCheckers.c_346"></a><span class="hl lin">  346 </span>    <span class="hl kwa">if</span> <span class="hl opt">(</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_0<span class="hl opt">)</span>
+<a name="EventCheckers.c_347"></a><span class="hl lin">  347 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_348"></a><span class="hl lin">  348 </span>            CurrentBand <span class="hl opt">=</span> Band0ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_349"></a><span class="hl lin">  349 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_350"></a><span class="hl lin">  350 </span>    <span class="hl kwa">else if</span> <span class="hl opt">((</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_1<span class="hl opt">) &amp;&amp; (</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_0<span class="hl opt">))</span>
+<a name="EventCheckers.c_351"></a><span class="hl lin">  351 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_352"></a><span class="hl lin">  352 </span>            CurrentBand <span class="hl opt">=</span> Band1ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_353"></a><span class="hl lin">  353 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_354"></a><span class="hl lin">  354 </span>    <span class="hl kwa">else if</span> <span class="hl opt">((</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_2<span class="hl opt">) &amp;&amp; (</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_1<span class="hl opt">))</span>
+<a name="EventCheckers.c_355"></a><span class="hl lin">  355 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_356"></a><span class="hl lin">  356 </span>            CurrentBand <span class="hl opt">=</span> Band2ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_357"></a><span class="hl lin">  357 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_358"></a><span class="hl lin">  358 </span>    <span class="hl kwa">else if</span> <span class="hl opt">((</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_3<span class="hl opt">) &amp;&amp; (</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_2<span class="hl opt">))</span>
+<a name="EventCheckers.c_359"></a><span class="hl lin">  359 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_360"></a><span class="hl lin">  360 </span>            CurrentBand <span class="hl opt">=</span> Band3ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_361"></a><span class="hl lin">  361 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_362"></a><span class="hl lin">  362 </span>    <span class="hl kwa">else if</span> <span class="hl opt">((</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_4<span class="hl opt">) &amp;&amp; (</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_3<span class="hl opt">))</span>
+<a name="EventCheckers.c_363"></a><span class="hl lin">  363 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_364"></a><span class="hl lin">  364 </span>            CurrentBand <span class="hl opt">=</span> Band4ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_365"></a><span class="hl lin">  365 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_366"></a><span class="hl lin">  366 </span>    <span class="hl kwa">else if</span> <span class="hl opt">((</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_5<span class="hl opt">) &amp;&amp; (</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_4<span class="hl opt">))</span>
+<a name="EventCheckers.c_367"></a><span class="hl lin">  367 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_368"></a><span class="hl lin">  368 </span>            CurrentBand <span class="hl opt">=</span> Band5ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_369"></a><span class="hl lin">  369 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_370"></a><span class="hl lin">  370 </span>    <span class="hl kwa">else if</span> <span class="hl opt">((</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_6<span class="hl opt">) &amp;&amp; (</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_5<span class="hl opt">))</span>
+<a name="EventCheckers.c_371"></a><span class="hl lin">  371 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_372"></a><span class="hl lin">  372 </span>            CurrentBand <span class="hl opt">=</span> Band6ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_373"></a><span class="hl lin">  373 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_374"></a><span class="hl lin">  374 </span>    <span class="hl kwa">else if</span> <span class="hl opt">((</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_7<span class="hl opt">) &amp;&amp; (</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_6<span class="hl opt">))</span>
+<a name="EventCheckers.c_375"></a><span class="hl lin">  375 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_376"></a><span class="hl lin">  376 </span>            CurrentBand <span class="hl opt">=</span> Band7ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_377"></a><span class="hl lin">  377 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_378"></a><span class="hl lin">  378 </span>    <span class="hl kwa">else if</span> <span class="hl opt">((</span>CurrentPinVal <span class="hl opt">&lt;=</span> THRESH_8<span class="hl opt">) &amp;&amp; (</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_7<span class="hl opt">))</span>
+<a name="EventCheckers.c_379"></a><span class="hl lin">  379 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_380"></a><span class="hl lin">  380 </span>            CurrentBand <span class="hl opt">=</span> Band8ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_381"></a><span class="hl lin">  381 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_382"></a><span class="hl lin">  382 </span>    <span class="hl kwa">else if</span> <span class="hl opt">(</span>CurrentPinVal <span class="hl opt">&gt;</span> THRESH_8<span class="hl opt">)</span>
+<a name="EventCheckers.c_383"></a><span class="hl lin">  383 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_384"></a><span class="hl lin">  384 </span>            CurrentBand <span class="hl opt">=</span> Band9ON<span class="hl opt">;</span> <span class="hl slc">//This value will be passed to the pedal array</span>
+<a name="EventCheckers.c_385"></a><span class="hl lin">  385 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_386"></a><span class="hl lin">  386 </span>
+<a name="EventCheckers.c_387"></a><span class="hl lin">  387 </span>    <span class="hl slc">// check for band different from last time</span>
+<a name="EventCheckers.c_388"></a><span class="hl lin">  388 </span>    <span class="hl kwa">if</span> <span class="hl opt">(</span>CurrentBand <span class="hl opt">!=</span> LastBand<span class="hl opt">)</span>
+<a name="EventCheckers.c_389"></a><span class="hl lin">  389 </span>        <span class="hl opt">{</span>
+<a name="EventCheckers.c_390"></a><span class="hl lin">  390 </span>            <span class="hl slc">// event detected, so post detected event</span>
+<a name="EventCheckers.c_391"></a><span class="hl lin">  391 </span>            ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="EventCheckers.c_392"></a><span class="hl lin">  392 </span>            ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> PEDAL<span class="hl opt">;</span>
+<a name="EventCheckers.c_393"></a><span class="hl lin">  393 </span>            ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> CurrentBand<span class="hl opt">;</span>
+<a name="EventCheckers.c_394"></a><span class="hl lin">  394 </span>            <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="EventCheckers.c_395"></a><span class="hl lin">  395 </span>            ReturnVal <span class="hl opt">=</span> True<span class="hl opt">;</span>
+<a name="EventCheckers.c_396"></a><span class="hl lin">  396 </span>
+<a name="EventCheckers.c_397"></a><span class="hl lin">  397 </span>            <span class="hl slc">//printf(&quot;Current Pin Val is, %i&quot;, CurrentPinVal);</span>
+<a name="EventCheckers.c_398"></a><span class="hl lin">  398 </span>
+<a name="EventCheckers.c_399"></a><span class="hl lin">  399 </span>            <span class="hl slc">//printf(&quot;Pedal Event Detected, paramval sent: %d\r\n&quot;, ThisEvent.EventParam);</span>
+<a name="EventCheckers.c_400"></a><span class="hl lin">  400 </span>        <span class="hl opt">}</span>
+<a name="EventCheckers.c_401"></a><span class="hl lin">  401 </span>
+<a name="EventCheckers.c_402"></a><span class="hl lin">  402 </span>    LastBand <span class="hl opt">=</span> CurrentBand<span class="hl opt">;</span>
+<a name="EventCheckers.c_403"></a><span class="hl lin">  403 </span>
+<a name="EventCheckers.c_404"></a><span class="hl lin">  404 </span>    <span class="hl kwa">return</span> ReturnVal<span class="hl opt">;</span>
+<a name="EventCheckers.c_405"></a><span class="hl lin">  405 </span><span class="hl opt">}</span>
+<a name="EventCheckers.c_406"></a><span class="hl lin">  406 </span>
+<a name="EventCheckers.c_407"></a><span class="hl lin">  407 </span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

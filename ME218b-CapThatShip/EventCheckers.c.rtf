@@ -1,0 +1,162 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red51\green00\blue102;\red24\green97\blue167;\red50\green186\blue06;\red00\green102\blue51;\red00\green102\blue51;\red166\green23\blue97;\red83\green116\blue176;\red102\green51\blue00;\red154\green154\blue154;\red85\green85\blue85;\red255\green48\blue48;\red244\green140\blue35;\red00\green00\blue255;\red209\green28\blue237;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#include}} {\cf9{"mc{9}s{1}{2}e{1}{2}{8}.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Configure.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_General.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Events.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_PostList.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"EventCheckers.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf5{// This include will pull in all of the headers from the service modules}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// providing the prototypes for all of the post functions}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_ServiceHeaders.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"AlignPPService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ArtilleryFSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ResupplyService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"StrategyFSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"DriveTrainService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{CheckSPIF}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    boolean ReturnVal}} {\cf11{=}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    ES_Event ThisEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{IncomingMessage}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{SPISR_SPIF}} {\cf11{!=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{)}} {\cf2{}}{\cf5{//SPIF flag set}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{//clear flag}}}\par\pard
+\cbpat1{{\cf2{            SPISR}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            IncomingMessage}} {\cf11{=}} {\cf2{SPIDR}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{//post event to FAC_FSM}}}\par\pard
+\cbpat1{{\cf2{            ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{SPIF_SET}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            ThisEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{IncomingMessage}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostFAC_FSM}}{\cf2{}}{\cf11{(}}{\cf2{ThisEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}} {\cf2{ReturnVal}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{CheckPPAlignment}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    ES_Event MtrEvent}}{\cf11{,}} {\cf2{StrategyEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned char}} {\cf2{LastPinState}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{CurrentPinState}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    boolean ReturnVal}} {\cf11{=}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    CurrentPinState}} {\cf11{=}} {\cf2{ALIGNPP_PORT}}{\cf11{;}} {\cf2{}}{\cf5{//poll state of pin associated with alignment}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{CurrentPinState}} {\cf11{!=}} {\cf2{LastPinState}}{\cf11{) && (}}{\cf2{CurrentPinState}} {\cf11{==}} {\cf2{HI}}{\cf11{) )}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{//Disable Interrupts once aligned _S{1}{2}_C{5}I}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{EnableIRDetection}}{\cf2{}}{\cf11{(}}{\cf2{False}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{//cancel IRDetect_TIMER}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{ES_Timer_StopTimer}}{\cf2{}}{\cf11{(}}{\cf2{ALIGN_TIMER}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"stopped timer}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            MtrEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{STOP_MOTOR}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            MtrEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostDriveTrainService}}{\cf2{}}{\cf11{(}}{\cf2{MtrEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            StrategyEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{DESTINATION_REACHED}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            StrategyEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostStrategyFSM}}{\cf2{}}{\cf11{(}}{\cf2{StrategyEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"aligned with enemy pp}}{\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            ALIGNPP_PORT}} {\cf11{=}} {\cf2{LO}}{\cf11{;}} {\cf2{}}{\cf5{//reset Port to LO}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            ReturnVal}} {\cf11{=}} {\cf2{True}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    LastPinState}} {\cf11{=}} {\cf2{CurrentPinState}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}} {\cf2{ReturnVal}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{boolean}} {\cf15{CheckBackedUp}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    ES_Event MtrEvent}}{\cf11{,}} {\cf2{StrategyEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned char}} {\cf2{LastPinState}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{CurrentPinState}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    boolean ReturnVal}} {\cf11{=}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    CurrentPinState}} {\cf11{=}} {\cf2{BACKUP_PORT}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{CurrentPinState}} {\cf11{!=}} {\cf2{LastPinState}}{\cf11{) && (}}{\cf2{CurrentPinState}} {\cf11{==}} {\cf2{HI}}{\cf11{) && (}}{\cf2{}}{\cf15{QueryStrategyFSM}}{\cf2{}}{\cf11{() ==}} {\cf2{Reloading}}{\cf11{) )}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{            MtrEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{STOP_MOTOR}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            MtrEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostDriveTrainService}}{\cf2{}}{\cf11{(}}{\cf2{MtrEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"backed up to resupply depot}} {\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{TurnOffPControl}}{\cf2{}}{\cf11{();}}   {\cf2{}}{\cf5{//Disable P-Control Interrupt}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            StrategyEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{READY{2}RELOAD}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            StrategyEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostStrategyFSM}}{\cf2{}}{\cf11{(}}{\cf2{StrategyEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{TurnOffPControl}}{\cf2{}}{\cf11{();}}   {\cf2{}}{\cf5{//Disable P-Control Interrupt}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            ReturnVal}} {\cf11{=}} {\cf2{True}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    LastPinState}} {\cf11{=}} {\cf2{CurrentPinState}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}} {\cf2{ReturnVal}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{CheckGameActive}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    ES_Event StrategyEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned char}} {\cf2{LastGameState}} {\cf11{=}} {\cf2{STOPPED}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{CurrentGameState}} {\cf11{=}} {\cf2{STOPPED}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    boolean ReturnVal}} {\cf11{=}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    CurrentGameState}} {\cf11{=}} {\cf2{}}{\cf15{QueryGameState}}{\cf2{}}{\cf11{();}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{CurrentGameState}} {\cf11{!=}} {\cf2{LastGameState}}{\cf11{) && (}}{\cf2{CurrentGameState}} {\cf11{==}} {\cf2{INPLAY}}{\cf11{) && (}}{\cf2{}}{\cf15{QueryStrategyFSM}}{\cf2{}}{\cf11{() ==}} {\cf2{Waiting{4}GameStart}} {\cf11{))}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            StrategyEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{GAME_START}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            StrategyEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostStrategyFSM}}{\cf2{}}{\cf11{(}}{\cf2{StrategyEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{puts}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf3{"now in play}} {\cf7{\\r\\n}}{\cf3{"}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            ReturnVal}} {\cf11{=}} {\cf2{True}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else if}} {\cf2{}}{\cf11{( (}}{\cf2{CurrentGameState}} {\cf11{!=}} {\cf2{LastGameState}}{\cf11{) && (}}{\cf2{CurrentGameState}} {\cf11{==}} {\cf2{STOPPED}}{\cf11{) && (}}{\cf2{}}{\cf15{QueryStrategyFSM}}{\cf2{}}{\cf11{() !=}} {\cf2{Waiting{4}GameStart}}{\cf11{) )}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{            StrategyEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{GAME_OVER}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            StrategyEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostStrategyFSM}}{\cf2{}}{\cf11{(}}{\cf2{StrategyEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            ReturnVal}} {\cf11{=}} {\cf2{True}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    LastGameState}} {\cf11{=}} {\cf2{CurrentGameState}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{return}} {\cf2{ReturnVal}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{CheckCamouflaged}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    ES_Event StrategyEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned char}} {\cf2{LastPosition}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{unsigned char}} {\cf2{CurrentPosition}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    boolean ReturnVal}} {\cf11{=}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    CurrentPosition}} {\cf11{=}} {\cf2{}}{\cf15{QueryX}}{\cf2{}}{\cf11{(}}{\cf2{SelfNum}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{CurrentPosition}} {\cf11{!=}} {\cf2{LastPosition}}{\cf11{) && (}}{\cf2{CurrentPosition}} {\cf11{==}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{) && (}}{\cf2{}}{\cf15{QueryStrategyFSM}}{\cf2{}}{\cf11{() ==}} {\cf2{Reloading}} {\cf11{))}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            StrategyEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{RESUPPLY_COVER_REACHED}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            StrategyEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostStrategyFSM}}{\cf2{}}{\cf11{(}}{\cf2{StrategyEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            ReturnVal}} {\cf11{=}} {\cf2{True}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    LastPosition}} {\cf11{=}} {\cf2{CurrentPosition}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{return}} {\cf2{ReturnVal}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}{\cf2{}}}\par\pard
+\cbpat1{}}

@@ -1,0 +1,272 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ES_Configure.h</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><a name="ES_Configure.h_1"></a><span class="hl lin">    1 </span><span class="hl com">/****************************************************************************</span>
+<a name="ES_Configure.h_2"></a><span class="hl lin">    2 </span><span class="hl com"> Module</span>
+<a name="ES_Configure.h_3"></a><span class="hl lin">    3 </span><span class="hl com">     ES_Configure.h</span>
+<a name="ES_Configure.h_4"></a><span class="hl lin">    4 </span><span class="hl com"> Description</span>
+<a name="ES_Configure.h_5"></a><span class="hl lin">    5 </span><span class="hl com">     This file contains macro definitions that are edited by the user to</span>
+<a name="ES_Configure.h_6"></a><span class="hl lin">    6 </span><span class="hl com">     adapt the Events and Services framework to a particular application.</span>
+<a name="ES_Configure.h_7"></a><span class="hl lin">    7 </span><span class="hl com"> Notes</span>
+<a name="ES_Configure.h_8"></a><span class="hl lin">    8 </span><span class="hl com"></span>
+<a name="ES_Configure.h_9"></a><span class="hl lin">    9 </span><span class="hl com"> History</span>
+<a name="ES_Configure.h_10"></a><span class="hl lin">   10 </span><span class="hl com"> When           Who     What/Why</span>
+<a name="ES_Configure.h_11"></a><span class="hl lin">   11 </span><span class="hl com"> -------------- ---     --------</span>
+<a name="ES_Configure.h_12"></a><span class="hl lin">   12 </span><span class="hl com"> 01/15/12 10:03 jec      started coding</span>
+<a name="ES_Configure.h_13"></a><span class="hl lin">   13 </span><span class="hl com">*****************************************************************************/</span>
+<a name="ES_Configure.h_14"></a><span class="hl lin">   14 </span>
+<a name="ES_Configure.h_15"></a><span class="hl lin">   15 </span><span class="hl ppc">#ifndef CONFIGURE_H</span>
+<a name="ES_Configure.h_16"></a><span class="hl lin">   16 </span><span class="hl ppc">#define CONFIGURE_H</span>
+<a name="ES_Configure.h_17"></a><span class="hl lin">   17 </span>
+<a name="ES_Configure.h_18"></a><span class="hl lin">   18 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_19"></a><span class="hl lin">   19 </span><span class="hl slc">// The maximum number of services sets an upper bound on the number of</span>
+<a name="ES_Configure.h_20"></a><span class="hl lin">   20 </span><span class="hl slc">// services that the framework will handle. Reasonable values are 8 and 16</span>
+<a name="ES_Configure.h_21"></a><span class="hl lin">   21 </span><span class="hl slc">// HOWEVER: at this time only a value of 8 is supported.</span>
+<a name="ES_Configure.h_22"></a><span class="hl lin">   22 </span><span class="hl ppc">#define MAX_NUM_SERVICES 8</span>
+<a name="ES_Configure.h_23"></a><span class="hl lin">   23 </span>
+<a name="ES_Configure.h_24"></a><span class="hl lin">   24 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_25"></a><span class="hl lin">   25 </span><span class="hl slc">// This macro determines that nuber of services that are *actually* used in</span>
+<a name="ES_Configure.h_26"></a><span class="hl lin">   26 </span><span class="hl slc">// a particular application. It will vary in value from 1 to MAX_NUM_SERVICES</span>
+<a name="ES_Configure.h_27"></a><span class="hl lin">   27 </span><span class="hl ppc">#define NUM_SERVICES 6</span>
+<a name="ES_Configure.h_28"></a><span class="hl lin">   28 </span>
+<a name="ES_Configure.h_29"></a><span class="hl lin">   29 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_30"></a><span class="hl lin">   30 </span><span class="hl slc">// These are the definitions for Service 0, the lowest priority service</span>
+<a name="ES_Configure.h_31"></a><span class="hl lin">   31 </span><span class="hl slc">// every Events and Services application must have a Service 0. Further</span>
+<a name="ES_Configure.h_32"></a><span class="hl lin">   32 </span><span class="hl slc">// services are added in numeric sequence (1,2,3,...) with increasing</span>
+<a name="ES_Configure.h_33"></a><span class="hl lin">   33 </span><span class="hl slc">// priorities</span>
+<a name="ES_Configure.h_34"></a><span class="hl lin">   34 </span><span class="hl slc">// the header file with the public fuction prototypes</span>
+<a name="ES_Configure.h_35"></a><span class="hl lin">   35 </span><span class="hl ppc">#define SERV_0_HEADER</span> <span class="hl pps">&quot;PortSampleSM.h&quot;</span><span class="hl ppc"></span>
+<a name="ES_Configure.h_36"></a><span class="hl lin">   36 </span><span class="hl slc">// the name of the Init function</span>
+<a name="ES_Configure.h_37"></a><span class="hl lin">   37 </span><span class="hl ppc">#define SERV_0_INIT InitPortSampleSM</span>
+<a name="ES_Configure.h_38"></a><span class="hl lin">   38 </span><span class="hl slc">// the name of the run function</span>
+<a name="ES_Configure.h_39"></a><span class="hl lin">   39 </span><span class="hl ppc">#define SERV_0_RUN RunPortSampleSM</span>
+<a name="ES_Configure.h_40"></a><span class="hl lin">   40 </span><span class="hl slc">// How big should this services Queue be?</span>
+<a name="ES_Configure.h_41"></a><span class="hl lin">   41 </span><span class="hl ppc">#define SERV_0_QUEUE_SIZE 3</span>
+<a name="ES_Configure.h_42"></a><span class="hl lin">   42 </span>
+<a name="ES_Configure.h_43"></a><span class="hl lin">   43 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_44"></a><span class="hl lin">   44 </span><span class="hl slc">// The following sections are used to define the parameters for each of the</span>
+<a name="ES_Configure.h_45"></a><span class="hl lin">   45 </span><span class="hl slc">// services. You only need to fill out as many as the number of services</span>
+<a name="ES_Configure.h_46"></a><span class="hl lin">   46 </span><span class="hl slc">// defined by NUM_SERVICES</span>
+<a name="ES_Configure.h_47"></a><span class="hl lin">   47 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_48"></a><span class="hl lin">   48 </span><span class="hl slc">// These are the definitions for Service 1</span>
+<a name="ES_Configure.h_49"></a><span class="hl lin">   49 </span><span class="hl ppc">#if NUM_SERVICES &gt; 1</span>
+<a name="ES_Configure.h_50"></a><span class="hl lin">   50 </span><span class="hl slc">// the header file with the public fuction prototypes</span>
+<a name="ES_Configure.h_51"></a><span class="hl lin">   51 </span><span class="hl ppc">#define SERV_1_HEADER</span> <span class="hl pps">&quot;MotorSM.h&quot;</span><span class="hl ppc"></span>
+<a name="ES_Configure.h_52"></a><span class="hl lin">   52 </span><span class="hl slc">// the name of the Init function</span>
+<a name="ES_Configure.h_53"></a><span class="hl lin">   53 </span><span class="hl ppc">#define SERV_1_INIT InitMotorSM</span>
+<a name="ES_Configure.h_54"></a><span class="hl lin">   54 </span><span class="hl slc">// the name of the run function</span>
+<a name="ES_Configure.h_55"></a><span class="hl lin">   55 </span><span class="hl ppc">#define SERV_1_RUN RunMotorSM</span>
+<a name="ES_Configure.h_56"></a><span class="hl lin">   56 </span><span class="hl slc">// How big should this services Queue be?</span>
+<a name="ES_Configure.h_57"></a><span class="hl lin">   57 </span><span class="hl ppc">#define SERV_1_QUEUE_SIZE 3</span>
+<a name="ES_Configure.h_58"></a><span class="hl lin">   58 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_59"></a><span class="hl lin">   59 </span>
+<a name="ES_Configure.h_60"></a><span class="hl lin">   60 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_61"></a><span class="hl lin">   61 </span><span class="hl slc">// These are the definitions for Service 2</span>
+<a name="ES_Configure.h_62"></a><span class="hl lin">   62 </span><span class="hl ppc">#if NUM_SERVICES &gt; 2</span>
+<a name="ES_Configure.h_63"></a><span class="hl lin">   63 </span><span class="hl slc">// the header file with the public fuction prototypes</span>
+<a name="ES_Configure.h_64"></a><span class="hl lin">   64 </span><span class="hl ppc">#define SERV_2_HEADER</span>  <span class="hl pps">&quot;ComSM.h&quot;</span><span class="hl ppc"></span>
+<a name="ES_Configure.h_65"></a><span class="hl lin">   65 </span><span class="hl slc">// the name of the Init function</span>
+<a name="ES_Configure.h_66"></a><span class="hl lin">   66 </span><span class="hl ppc">#define SERV_2_INIT    InitComSM</span>
+<a name="ES_Configure.h_67"></a><span class="hl lin">   67 </span><span class="hl slc">// the name of the run function</span>
+<a name="ES_Configure.h_68"></a><span class="hl lin">   68 </span><span class="hl ppc">#define SERV_2_RUN      RunComSM</span>
+<a name="ES_Configure.h_69"></a><span class="hl lin">   69 </span><span class="hl slc">// How big should this services Queue be?</span>
+<a name="ES_Configure.h_70"></a><span class="hl lin">   70 </span><span class="hl ppc">#define SERV_2_QUEUE_SIZE 3</span>
+<a name="ES_Configure.h_71"></a><span class="hl lin">   71 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_72"></a><span class="hl lin">   72 </span>
+<a name="ES_Configure.h_73"></a><span class="hl lin">   73 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_74"></a><span class="hl lin">   74 </span><span class="hl slc">// These are the definitions for Service 3</span>
+<a name="ES_Configure.h_75"></a><span class="hl lin">   75 </span><span class="hl ppc">#if NUM_SERVICES &gt; 3</span>
+<a name="ES_Configure.h_76"></a><span class="hl lin">   76 </span><span class="hl slc">// the header file with the public fuction prototypes</span>
+<a name="ES_Configure.h_77"></a><span class="hl lin">   77 </span><span class="hl ppc">#define SERV_3_HEADER</span>  <span class="hl pps">&quot;BatDecodeSM.h&quot;</span><span class="hl ppc"></span>     <span class="hl slc">//remove for Joker</span>
+<a name="ES_Configure.h_78"></a><span class="hl lin">   78 </span><span class="hl ppc"></span><span class="hl slc">// the name of the Init function</span>
+<a name="ES_Configure.h_79"></a><span class="hl lin">   79 </span><span class="hl ppc">#define SERV_3_INIT   InitBatDecodeSM</span>
+<a name="ES_Configure.h_80"></a><span class="hl lin">   80 </span><span class="hl slc">// the name of the run function</span>
+<a name="ES_Configure.h_81"></a><span class="hl lin">   81 </span><span class="hl ppc">#define SERV_3_RUN   RunBatDecodeSM</span>
+<a name="ES_Configure.h_82"></a><span class="hl lin">   82 </span><span class="hl slc">// How big should this services Queue be?</span>
+<a name="ES_Configure.h_83"></a><span class="hl lin">   83 </span><span class="hl ppc">#define SERV_3_QUEUE_SIZE 3</span>
+<a name="ES_Configure.h_84"></a><span class="hl lin">   84 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_85"></a><span class="hl lin">   85 </span>
+<a name="ES_Configure.h_86"></a><span class="hl lin">   86 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_87"></a><span class="hl lin">   87 </span><span class="hl slc">// These are the definitions for Service 4</span>
+<a name="ES_Configure.h_88"></a><span class="hl lin">   88 </span><span class="hl ppc">#if NUM_SERVICES &gt; 4</span>
+<a name="ES_Configure.h_89"></a><span class="hl lin">   89 </span><span class="hl slc">// the header file with the public fuction prototypes</span>
+<a name="ES_Configure.h_90"></a><span class="hl lin">   90 </span><span class="hl ppc">#define SERV_4_HEADER</span>  <span class="hl pps">&quot;BatMorseSM.h&quot;</span><span class="hl ppc"></span>      <span class="hl slc">//remove for Joker</span>
+<a name="ES_Configure.h_91"></a><span class="hl lin">   91 </span><span class="hl ppc"></span><span class="hl slc">// the name of the Init function</span>
+<a name="ES_Configure.h_92"></a><span class="hl lin">   92 </span><span class="hl ppc">#define SERV_4_INIT  InitBatMorseSM</span>
+<a name="ES_Configure.h_93"></a><span class="hl lin">   93 </span><span class="hl slc">// the name of the run function</span>
+<a name="ES_Configure.h_94"></a><span class="hl lin">   94 </span><span class="hl ppc">#define SERV_4_RUN    RunBatMorseSM</span>
+<a name="ES_Configure.h_95"></a><span class="hl lin">   95 </span><span class="hl slc">// How big should this services Queue be?</span>
+<a name="ES_Configure.h_96"></a><span class="hl lin">   96 </span><span class="hl ppc">#define SERV_4_QUEUE_SIZE 3</span>
+<a name="ES_Configure.h_97"></a><span class="hl lin">   97 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_98"></a><span class="hl lin">   98 </span>
+<a name="ES_Configure.h_99"></a><span class="hl lin">   99 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_100"></a><span class="hl lin">  100 </span><span class="hl slc">// These are the definitions for Service 5</span>
+<a name="ES_Configure.h_101"></a><span class="hl lin">  101 </span><span class="hl ppc">#if NUM_SERVICES &gt; 5</span>
+<a name="ES_Configure.h_102"></a><span class="hl lin">  102 </span><span class="hl slc">// the header file with the public fuction prototypes</span>
+<a name="ES_Configure.h_103"></a><span class="hl lin">  103 </span><span class="hl ppc">#define SERV_5_HEADER</span> <span class="hl pps">&quot;GameplaySM.h&quot;</span><span class="hl ppc"></span>
+<a name="ES_Configure.h_104"></a><span class="hl lin">  104 </span><span class="hl slc">// the name of the Init function</span>
+<a name="ES_Configure.h_105"></a><span class="hl lin">  105 </span><span class="hl ppc">#define SERV_5_INIT InitGameplaySM</span>
+<a name="ES_Configure.h_106"></a><span class="hl lin">  106 </span><span class="hl slc">// the name of the run function</span>
+<a name="ES_Configure.h_107"></a><span class="hl lin">  107 </span><span class="hl ppc">#define SERV_5_RUN RunGameplaySM</span>
+<a name="ES_Configure.h_108"></a><span class="hl lin">  108 </span><span class="hl slc">// How big should this services Queue be?</span>
+<a name="ES_Configure.h_109"></a><span class="hl lin">  109 </span><span class="hl ppc">#define SERV_5_QUEUE_SIZE 5</span>
+<a name="ES_Configure.h_110"></a><span class="hl lin">  110 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_111"></a><span class="hl lin">  111 </span>
+<a name="ES_Configure.h_112"></a><span class="hl lin">  112 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_113"></a><span class="hl lin">  113 </span><span class="hl slc">// These are the definitions for Service 6</span>
+<a name="ES_Configure.h_114"></a><span class="hl lin">  114 </span><span class="hl ppc">#if NUM_SERVICES &gt; 6</span>
+<a name="ES_Configure.h_115"></a><span class="hl lin">  115 </span><span class="hl slc">// the header file with the public fuction prototypes</span>
+<a name="ES_Configure.h_116"></a><span class="hl lin">  116 </span><span class="hl ppc">#define SERV_6_HEADER</span>
+<a name="ES_Configure.h_117"></a><span class="hl lin">  117 </span><span class="hl slc">// the name of the Init function</span>
+<a name="ES_Configure.h_118"></a><span class="hl lin">  118 </span><span class="hl ppc">#define SERV_6_INIT</span>
+<a name="ES_Configure.h_119"></a><span class="hl lin">  119 </span><span class="hl slc">// the name of the run function</span>
+<a name="ES_Configure.h_120"></a><span class="hl lin">  120 </span><span class="hl ppc">#define SERV_6_RUN</span>
+<a name="ES_Configure.h_121"></a><span class="hl lin">  121 </span><span class="hl slc">// How big should this services Queue be?</span>
+<a name="ES_Configure.h_122"></a><span class="hl lin">  122 </span><span class="hl ppc">#define SERV_6_QUEUE_SIZE 3</span>
+<a name="ES_Configure.h_123"></a><span class="hl lin">  123 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_124"></a><span class="hl lin">  124 </span>
+<a name="ES_Configure.h_125"></a><span class="hl lin">  125 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_126"></a><span class="hl lin">  126 </span><span class="hl slc">// These are the definitions for Service 7</span>
+<a name="ES_Configure.h_127"></a><span class="hl lin">  127 </span><span class="hl ppc">#if NUM_SERVICES &gt; 7</span>
+<a name="ES_Configure.h_128"></a><span class="hl lin">  128 </span><span class="hl slc">// the header file with the public fuction prototypes</span>
+<a name="ES_Configure.h_129"></a><span class="hl lin">  129 </span><span class="hl ppc">#define SERV_7_HEADER</span> <span class="hl pps">&quot;TestService.h&quot;</span><span class="hl ppc"></span>
+<a name="ES_Configure.h_130"></a><span class="hl lin">  130 </span><span class="hl slc">// the name of the Init function</span>
+<a name="ES_Configure.h_131"></a><span class="hl lin">  131 </span><span class="hl ppc">#define SERV_7_INIT TestServiceInit</span>
+<a name="ES_Configure.h_132"></a><span class="hl lin">  132 </span><span class="hl slc">// the name of the run function</span>
+<a name="ES_Configure.h_133"></a><span class="hl lin">  133 </span><span class="hl ppc">#define SERV_7_RUN TestServiceRun</span>
+<a name="ES_Configure.h_134"></a><span class="hl lin">  134 </span><span class="hl slc">// How big should this services Queue be?</span>
+<a name="ES_Configure.h_135"></a><span class="hl lin">  135 </span><span class="hl ppc">#define SERV_7_QUEUE_SIZE 3</span>
+<a name="ES_Configure.h_136"></a><span class="hl lin">  136 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_137"></a><span class="hl lin">  137 </span>
+<a name="ES_Configure.h_138"></a><span class="hl lin">  138 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_139"></a><span class="hl lin">  139 </span><span class="hl slc">// the name of the posting function that you want executed when a new</span>
+<a name="ES_Configure.h_140"></a><span class="hl lin">  140 </span><span class="hl slc">// keystroke is detected.</span>
+<a name="ES_Configure.h_141"></a><span class="hl lin">  141 </span><span class="hl slc">// The default initialization distributes keystrokes to all state machines</span>
+<a name="ES_Configure.h_142"></a><span class="hl lin">  142 </span><span class="hl ppc">#define POST_KEY_FUNC ES_PostAll</span>
+<a name="ES_Configure.h_143"></a><span class="hl lin">  143 </span>
+<a name="ES_Configure.h_144"></a><span class="hl lin">  144 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_145"></a><span class="hl lin">  145 </span><span class="hl slc">// Name/define the events of interest</span>
+<a name="ES_Configure.h_146"></a><span class="hl lin">  146 </span><span class="hl slc">// Universal events occupy the lowest entries, followed by user-defined events</span>
+<a name="ES_Configure.h_147"></a><span class="hl lin">  147 </span><span class="hl kwc">typedef</span> <span class="hl kwb">enum</span> <span class="hl opt">{</span>  ES_NO_EVENT <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">,</span>
+<a name="ES_Configure.h_148"></a><span class="hl lin">  148 </span>                ES_ERROR<span class="hl opt">,</span>  <span class="hl com">/* used to indicate an error from the service */</span>
+<a name="ES_Configure.h_149"></a><span class="hl lin">  149 </span>                ES_INIT<span class="hl opt">,</span>   <span class="hl com">/* used to transition from initial pseudo-state */</span>
+<a name="ES_Configure.h_150"></a><span class="hl lin">  150 </span>                ES_NEW_KEY<span class="hl opt">,</span> <span class="hl com">/* signals a new key received from terminal */</span>
+<a name="ES_Configure.h_151"></a><span class="hl lin">  151 </span>                ES_TIMEOUT<span class="hl opt">,</span> <span class="hl com">/* signals that the timer has expired */</span>
+<a name="ES_Configure.h_152"></a><span class="hl lin">  152 </span>                <span class="hl com">/* User-defined events start here */</span>
+<a name="ES_Configure.h_153"></a><span class="hl lin">  153 </span>                START_DEBOUNCE<span class="hl opt">,</span> <span class="hl slc">//postSample</span>
+<a name="ES_Configure.h_154"></a><span class="hl lin">  154 </span>                FALLING_EDGE<span class="hl opt">,</span>  <span class="hl slc">//</span>
+<a name="ES_Configure.h_155"></a><span class="hl lin">  155 </span>                RISING_EDGE<span class="hl opt">,</span>
+<a name="ES_Configure.h_156"></a><span class="hl lin">  156 </span>                CAL_COMPLETE<span class="hl opt">,</span>
+<a name="ES_Configure.h_157"></a><span class="hl lin">  157 </span>                EOC_Detected<span class="hl opt">,</span>
+<a name="ES_Configure.h_158"></a><span class="hl lin">  158 </span>                EOW_Detected<span class="hl opt">,</span>
+<a name="ES_Configure.h_159"></a><span class="hl lin">  159 </span>                BAD_SPACE<span class="hl opt">,</span>
+<a name="ES_Configure.h_160"></a><span class="hl lin">  160 </span>                DOT_Detected<span class="hl opt">,</span>
+<a name="ES_Configure.h_161"></a><span class="hl lin">  161 </span>                DASH_Detected<span class="hl opt">,</span>
+<a name="ES_Configure.h_162"></a><span class="hl lin">  162 </span>                BAD_PULSE<span class="hl opt">,</span>
+<a name="ES_Configure.h_163"></a><span class="hl lin">  163 </span>                BATID_OK<span class="hl opt">,</span>  <span class="hl slc">// bat ID</span>
+<a name="ES_Configure.h_164"></a><span class="hl lin">  164 </span>                JOKERREADY<span class="hl opt">,</span>
+<a name="ES_Configure.h_165"></a><span class="hl lin">  165 </span>                GAME_ACTIVE<span class="hl opt">,</span>
+<a name="ES_Configure.h_166"></a><span class="hl lin">  166 </span>                GAME_START<span class="hl opt">,</span>
+<a name="ES_Configure.h_167"></a><span class="hl lin">  167 </span>                GAME_END<span class="hl opt">,</span>
+<a name="ES_Configure.h_168"></a><span class="hl lin">  168 </span>                PEDAL<span class="hl opt">,</span>
+<a name="ES_Configure.h_169"></a><span class="hl lin">  169 </span>                SIDEBUTTON<span class="hl opt">,</span>
+<a name="ES_Configure.h_170"></a><span class="hl lin">  170 </span>                BEAMBREAK<span class="hl opt">,</span>
+<a name="ES_Configure.h_171"></a><span class="hl lin">  171 </span>                OILSLICK<span class="hl opt">,</span>
+<a name="ES_Configure.h_172"></a><span class="hl lin">  172 </span>                OILINDICATE<span class="hl opt">,</span>
+<a name="ES_Configure.h_173"></a><span class="hl lin">  173 </span>                DEFUSE<span class="hl opt">,</span>
+<a name="ES_Configure.h_174"></a><span class="hl lin">  174 </span>                DETONATE<span class="hl opt">,</span>
+<a name="ES_Configure.h_175"></a><span class="hl lin">  175 </span>                BTOP<span class="hl opt">,</span> BBOT<span class="hl opt">,</span> BMID<span class="hl opt">,</span> JTOP<span class="hl opt">,</span> JBOT<span class="hl opt">,</span> JMID<span class="hl opt">,</span>  <span class="hl slc">//game events</span>
+<a name="ES_Configure.h_176"></a><span class="hl lin">  176 </span>                MOTORSTART<span class="hl opt">,</span>
+<a name="ES_Configure.h_177"></a><span class="hl lin">  177 </span>                MOTORSLOW<span class="hl opt">,</span>
+<a name="ES_Configure.h_178"></a><span class="hl lin">  178 </span>                MOTORFAST<span class="hl opt">,</span>
+<a name="ES_Configure.h_179"></a><span class="hl lin">  179 </span>                MOTORSTOP<span class="hl opt">,</span>
+<a name="ES_Configure.h_180"></a><span class="hl lin">  180 </span>                MOTORREVERSE<span class="hl opt">,</span>
+<a name="ES_Configure.h_181"></a><span class="hl lin">  181 </span>                STROBE_RISE<span class="hl opt">,</span>
+<a name="ES_Configure.h_182"></a><span class="hl lin">  182 </span>                STROBE_FALL<span class="hl opt">,</span>
+<a name="ES_Configure.h_183"></a><span class="hl lin">  183 </span>                ACK_RISE<span class="hl opt">,</span>
+<a name="ES_Configure.h_184"></a><span class="hl lin">  184 </span>                SENDREQ<span class="hl opt">,</span> <span class="hl slc">//com link btw C32's</span>
+<a name="ES_Configure.h_185"></a><span class="hl lin">  185 </span>                GAMESTART<span class="hl opt">,</span>
+<a name="ES_Configure.h_186"></a><span class="hl lin">  186 </span>                JOKERWIN<span class="hl opt">,</span>
+<a name="ES_Configure.h_187"></a><span class="hl lin">  187 </span>                BATMANWIN<span class="hl opt">,</span>
+<a name="ES_Configure.h_188"></a><span class="hl lin">  188 </span>                JOKERLOSE<span class="hl opt">,</span>
+<a name="ES_Configure.h_189"></a><span class="hl lin">  189 </span>                BATMANLOSE
+<a name="ES_Configure.h_190"></a><span class="hl lin">  190 </span>             <span class="hl opt">}</span> ES_EventTyp_t <span class="hl opt">;</span>
+<a name="ES_Configure.h_191"></a><span class="hl lin">  191 </span>
+<a name="ES_Configure.h_192"></a><span class="hl lin">  192 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_193"></a><span class="hl lin">  193 </span><span class="hl slc">// These are the definitions for the Distribution lists. Each definition</span>
+<a name="ES_Configure.h_194"></a><span class="hl lin">  194 </span><span class="hl slc">// should be a comma seperated list of post functions to indicate which</span>
+<a name="ES_Configure.h_195"></a><span class="hl lin">  195 </span><span class="hl slc">// services are on that distribution list.</span>
+<a name="ES_Configure.h_196"></a><span class="hl lin">  196 </span><span class="hl ppc">#define NUM_DIST_LISTS 0</span>
+<a name="ES_Configure.h_197"></a><span class="hl lin">  197 </span><span class="hl ppc">#if NUM_DIST_LISTS &gt; 0</span>
+<a name="ES_Configure.h_198"></a><span class="hl lin">  198 </span><span class="hl ppc">#define DIST_LIST0 PostTemplateFSM</span>
+<a name="ES_Configure.h_199"></a><span class="hl lin">  199 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_200"></a><span class="hl lin">  200 </span><span class="hl ppc">#if NUM_DIST_LISTS &gt; 1</span>
+<a name="ES_Configure.h_201"></a><span class="hl lin">  201 </span><span class="hl ppc">#define DIST_LIST1 PostTemplateFSM</span>
+<a name="ES_Configure.h_202"></a><span class="hl lin">  202 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_203"></a><span class="hl lin">  203 </span><span class="hl ppc">#if NUM_DIST_LISTS &gt; 2</span>
+<a name="ES_Configure.h_204"></a><span class="hl lin">  204 </span><span class="hl ppc">#define DIST_LIST2 PostTemplateFSM</span>
+<a name="ES_Configure.h_205"></a><span class="hl lin">  205 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_206"></a><span class="hl lin">  206 </span><span class="hl ppc">#if NUM_DIST_LISTS &gt; 3</span>
+<a name="ES_Configure.h_207"></a><span class="hl lin">  207 </span><span class="hl ppc">#define DIST_LIST3 PostTemplateFSM</span>
+<a name="ES_Configure.h_208"></a><span class="hl lin">  208 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_209"></a><span class="hl lin">  209 </span><span class="hl ppc">#if NUM_DIST_LISTS &gt; 4</span>
+<a name="ES_Configure.h_210"></a><span class="hl lin">  210 </span><span class="hl ppc">#define DIST_LIST4 PostTemplateFSM</span>
+<a name="ES_Configure.h_211"></a><span class="hl lin">  211 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_212"></a><span class="hl lin">  212 </span><span class="hl ppc">#if NUM_DIST_LISTS &gt; 5</span>
+<a name="ES_Configure.h_213"></a><span class="hl lin">  213 </span><span class="hl ppc">#define DIST_LIST5 PostTemplateFSM</span>
+<a name="ES_Configure.h_214"></a><span class="hl lin">  214 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_215"></a><span class="hl lin">  215 </span><span class="hl ppc">#if NUM_DIST_LISTS &gt; 6</span>
+<a name="ES_Configure.h_216"></a><span class="hl lin">  216 </span><span class="hl ppc">#define DIST_LIST6 PostTemplateFSM</span>
+<a name="ES_Configure.h_217"></a><span class="hl lin">  217 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_218"></a><span class="hl lin">  218 </span><span class="hl ppc">#if NUM_DIST_LISTS &gt; 7</span>
+<a name="ES_Configure.h_219"></a><span class="hl lin">  219 </span><span class="hl ppc">#define DIST_LIST7 PostTemplateFSM</span>
+<a name="ES_Configure.h_220"></a><span class="hl lin">  220 </span><span class="hl ppc">#endif</span>
+<a name="ES_Configure.h_221"></a><span class="hl lin">  221 </span>
+<a name="ES_Configure.h_222"></a><span class="hl lin">  222 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_223"></a><span class="hl lin">  223 </span><span class="hl slc">// This are the name of the Event checking funcion header file.</span>
+<a name="ES_Configure.h_224"></a><span class="hl lin">  224 </span><span class="hl ppc">#define EVENT_CHECK_HEADER</span> <span class="hl pps">&quot;EventCheckers.h&quot;</span><span class="hl ppc"></span>
+<a name="ES_Configure.h_225"></a><span class="hl lin">  225 </span>
+<a name="ES_Configure.h_226"></a><span class="hl lin">  226 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_227"></a><span class="hl lin">  227 </span><span class="hl slc">// This is the list of event checking functions</span>
+<a name="ES_Configure.h_228"></a><span class="hl lin">  228 </span><span class="hl slc">//modify for different players Bot,Top,Mid</span>
+<a name="ES_Configure.h_229"></a><span class="hl lin">  229 </span>
+<a name="ES_Configure.h_230"></a><span class="hl lin">  230 </span><span class="hl ppc">#define EVENT_CHECK_LIST  CheckBeamBreakEvent, CheckPedalEvent, CheckStrobeEvents, CheckAckEvents, CheckOilSlickEvent, CheckDefuseEvent, CheckSideButtonEvent, CheckBTopEvent, CheckBBotEvent, CheckMorseEvents</span>
+<a name="ES_Configure.h_231"></a><span class="hl lin">  231 </span>
+<a name="ES_Configure.h_232"></a><span class="hl lin">  232 </span>
+<a name="ES_Configure.h_233"></a><span class="hl lin">  233 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_234"></a><span class="hl lin">  234 </span><span class="hl slc">// These are the definitions for the post functions to be executed when the</span>
+<a name="ES_Configure.h_235"></a><span class="hl lin">  235 </span><span class="hl slc">// correspnding timer expires. All 8 must be defined. If you are not using</span>
+<a name="ES_Configure.h_236"></a><span class="hl lin">  236 </span><span class="hl slc">// a timers, then you can use TIMER_UNUSED</span>
+<a name="ES_Configure.h_237"></a><span class="hl lin">  237 </span><span class="hl ppc">#define TIMER_UNUSED ((pPostFunc)0)</span>
+<a name="ES_Configure.h_238"></a><span class="hl lin">  238 </span><span class="hl ppc">#define TIMER0_RESP_FUNC TIMER_UNUSED</span>         <span class="hl slc">// 5 second game timer</span>
+<a name="ES_Configure.h_239"></a><span class="hl lin">  239 </span><span class="hl ppc"></span><span class="hl ppc">#define TIMER1_RESP_FUNC PostPortSampleSM</span>    <span class="hl slc">// Timer for creating the PseudoPort</span>
+<a name="ES_Configure.h_240"></a><span class="hl lin">  240 </span><span class="hl ppc"></span><span class="hl ppc">#define TIMER2_RESP_FUNC PostComSM</span>           <span class="hl slc">// Timer for ComSM</span>
+<a name="ES_Configure.h_241"></a><span class="hl lin">  241 </span><span class="hl ppc"></span><span class="hl ppc">#define TIMER3_RESP_FUNC PostGameplaySM</span>      <span class="hl slc">// Timer for Gameplay to use for input response characterization</span>
+<a name="ES_Configure.h_242"></a><span class="hl lin">  242 </span><span class="hl ppc"></span><span class="hl ppc">#define TIMER4_RESP_FUNC PostGameplaySM</span>      <span class="hl slc">// Timer used to tell when the OilSlick buttons will prompt</span>
+<a name="ES_Configure.h_243"></a><span class="hl lin">  243 </span><span class="hl ppc"></span><span class="hl ppc">#define TIMER5_RESP_FUNC PostGameplaySM</span>      <span class="hl slc">// Timer used to increase difficulty as game progresses</span>
+<a name="ES_Configure.h_244"></a><span class="hl lin">  244 </span><span class="hl ppc"></span><span class="hl ppc">#define TIMER6_RESP_FUNC TIMER_UNUSED</span>
+<a name="ES_Configure.h_245"></a><span class="hl lin">  245 </span><span class="hl ppc">#define TIMER7_RESP_FUNC TIMER_UNUSED</span>
+<a name="ES_Configure.h_246"></a><span class="hl lin">  246 </span>
+<a name="ES_Configure.h_247"></a><span class="hl lin">  247 </span><span class="hl com">/****************************************************************************/</span>
+<a name="ES_Configure.h_248"></a><span class="hl lin">  248 </span><span class="hl slc">// Give the timer numbers symbolc names to make it easier to move them</span>
+<a name="ES_Configure.h_249"></a><span class="hl lin">  249 </span><span class="hl slc">// to different timers if the need arises. Keep these definitons close to the</span>
+<a name="ES_Configure.h_250"></a><span class="hl lin">  250 </span><span class="hl slc">// definitions for the response functions to make it easier to check that</span>
+<a name="ES_Configure.h_251"></a><span class="hl lin">  251 </span><span class="hl slc">// the timer number matches where the timer event will be routed</span>
+<a name="ES_Configure.h_252"></a><span class="hl lin">  252 </span>
+<a name="ES_Configure.h_253"></a><span class="hl lin">  253 </span><span class="hl ppc">#define GAME_TIMER   0</span>
+<a name="ES_Configure.h_254"></a><span class="hl lin">  254 </span><span class="hl ppc">#define SAMPLE_TIMER 1</span>
+<a name="ES_Configure.h_255"></a><span class="hl lin">  255 </span><span class="hl ppc">#define COM_TIMER 2</span>
+<a name="ES_Configure.h_256"></a><span class="hl lin">  256 </span><span class="hl ppc">#define RESPONSE_TIMER 3</span>
+<a name="ES_Configure.h_257"></a><span class="hl lin">  257 </span><span class="hl ppc">#define OIL_SLICK_TIMER 4</span>
+<a name="ES_Configure.h_258"></a><span class="hl lin">  258 </span><span class="hl ppc">#define DIFFICULTY_TIMER 5</span>
+<a name="ES_Configure.h_259"></a><span class="hl lin">  259 </span>
+<a name="ES_Configure.h_260"></a><span class="hl lin">  260 </span>
+<a name="ES_Configure.h_261"></a><span class="hl lin">  261 </span><span class="hl ppc">#endif</span> <span class="hl com">/* CONFIGURE_H */</span><span class="hl ppc"></span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

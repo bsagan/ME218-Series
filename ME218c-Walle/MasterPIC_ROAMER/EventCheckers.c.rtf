@@ -1,0 +1,86 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf5{// Event Checking functions for use in testing the CheckUserEvents}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// functionality}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#include <htc.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Configure.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Framework.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"EventCheckers.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// this pulls in the headers for all services, which gets us the}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// prototypes for all of the post functions}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_ServiceHeaders.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{Check{4}EmptyBuffer}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    boolean ReturnVal}} {\cf11{=}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{// check for pin high and different from last time}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{SSPIF}} {\cf11{==}} {\cf2{}}{\cf4{{1}}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{// event detected, so post detected event}}}\par\pard
+\cbpat1{{\cf2{            ES_Event ThisEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{// Deassert Flag}}}\par\pard
+\cbpat1{{\cf2{            SSPIF}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{// Reset all SS lines to high, make sure only communicating to one slave}}}\par\pard
+\cbpat1{{\cf2{            LW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            RW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            CLAW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            CAMERA_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            SPECIAL_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{// Send Event to CommandSM}}}\par\pard
+\cbpat1{{\cf2{            ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{BUFFER_EMPTY}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            ThisEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostCommandSM}}{\cf2{}}{\cf11{(}}{\cf2{ThisEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{            ReturnVal}} {\cf11{=}} {\cf2{True}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{return}} {\cf2{ReturnVal}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{Check{4}RCIF}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    boolean ReturnVal}} {\cf11{=}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{// check if RCIF flag has been set}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{OERR}} {\cf11{==}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{)}} {\cf2{}}{\cf5{//overrun error}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{            CREN}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            CREN}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//reset CREN}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{RCIF}} {\cf11{==}} {\cf2{}}{\cf4{{1}}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{// event detected, so post detected event}}}\par\pard
+\cbpat1{{\cf2{            ES_Event ThisEvent}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            RCIF}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{            ThisEvent}}{\cf11{.}}{\cf2{EventType}} {\cf11{=}} {\cf2{RCIF_SET}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{            ThisEvent}}{\cf11{.}}{\cf2{EventParam}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{PostXBeeComSM}}{\cf2{}}{\cf11{(}}{\cf2{ThisEvent}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{            ReturnVal}} {\cf11{=}} {\cf2{True}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{return}} {\cf2{ReturnVal}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{boolean}} {\cf15{Check{4}RoamerNum}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    boolean ReturnVal}} {\cf11{=}} {\cf2{False}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static char}} {\cf2{lastRoamerNum}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{// check for pin high and different from last time}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{( (}}{\cf2{}}{\cf15{QueryCommandSM}}{\cf2{}}{\cf11{() ==}} {\cf2{IdlingDisconnected}}{\cf11{) &&  (}}{\cf2{lastRoamerNum}} {\cf11{!= (}}{\cf2{ROAMERSEL_{2}}} {\cf11{+}} {\cf2{ROAMERSEL_{1}}}{\cf11{)))}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{//Event Detected, call function to update Roamer Num in CommandSM}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{UpdateRoamerNum}}{\cf2{}}{\cf11{((}}{\cf2{ROAMERSEL_{2}}} {\cf11{+}} {\cf2{ROAMERSEL_{1}}}{\cf11{) +}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{// Save last pin state for event checker}}}\par\pard
+\cbpat1{{\cf2{            lastRoamerNum}} {\cf11{=}} {\cf2{ROAMERSEL_{2}}} {\cf11{+}} {\cf2{ROAMERSEL_{1}}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{return}} {\cf2{ReturnVal}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}{\cf2{}}}\par\pard
+\cbpat1{}}

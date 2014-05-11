@@ -1,0 +1,317 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf6{/* 	SPI_Master.c}}}\par\pard
+\cbpat1{{\cf6{*	This module contains the initialization function and all the}}}\par\pard
+\cbpat1{{\cf6{*	update functions for the slave PICs that the master communicates with}}}\par\pard
+\cbpat1{{\cf6{*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Include Files -----------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/* include header files for this state machine as well as any machines at the}}}\par\pard
+\cbpat1{{\cf6{   next lower level in the hierarchy that are sub-machines to this machine}}}\par\pard
+\cbpat1{{\cf6{*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf8{#include <htc.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"bitdefs.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Configure.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ES_Framework.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"DEFINITIONS.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"SPI_Master.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"CommandSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"XBeeComSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*---------------------------- Module Private Functions -------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/* prototypes for private functions for this module.They should be functions}}}\par\pard
+\cbpat1{{\cf6{   relevant to the behavior of the spi communications}}}\par\pard
+\cbpat1{{\cf6{*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*---------------------------- Module Variables ---------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{unsigned char}} {\cf2{SPECIAL_InfoArray}}{\cf11{[}}{\cf2{}}{\cf4{{5}}}{\cf2{}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf14{extern}} {\cf2{}}{\cf13{unsigned char}} {\cf2{SPECIAL_ReqArray}}{\cf11{[}}{\cf2{}}{\cf4{{5}}}{\cf2{}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf14{extern}} {\cf2{}}{\cf13{unsigned char}} {\cf2{DataArray}}{\cf11{[}}{\cf2{POD{2}ROAM}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*------------------------------ Module Code ------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Public Functions --------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     InitSPI}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Initializes the SPI module on the PIC{1}{6}F{6}{9}{0}}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{InitSPI}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{// Initialize to Mode {3} (idle HI, start on even edge)}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Initialize Register SSPSTAT}}}\par\pard
+\cbpat1{{\cf2{    CKE}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SMP}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Enable SPI Peripheral Interrupt}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SSPIE = {1};}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Clear Interrupt Flag}}}\par\pard
+\cbpat1{{\cf2{    SSPIF}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// B{6} <output>: SCK, C{7} <output>: SDO}}}\par\pard
+\cbpat1{{\cf2{    TRISB{6}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    TRISC{7}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Initialize the Global Interrupts and Peripheral Interrupts}}}\par\pard
+\cbpat1{{\cf2{    GIE}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    PEIE}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{// Initialize the SPI Module}}}\par\pard
+\cbpat1{{\cf2{    CKP}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SSPM{1}}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{// FOSC/{6}{4}}}}\par\pard
+\cbpat1{{\cf2{    SSPEN}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Clear ANSEL and ANSELH}}}\par\pard
+\cbpat1{{\cf2{    ANSEL}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    ANSELH}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf6{/* 	Initialize all TRISA, TRISB, and TRISC ports corresponding to SS lines}}}\par\pard
+\cbpat1{{\cf6{    *	as outputs. These lines will be toggled independently for the MasterPIC}}}\par\pard
+\cbpat1{{\cf6{    *	to communicate to each SlavePIC individually.}}}\par\pard
+\cbpat1{{\cf6{    */}}{\cf2{}\par\pard
+\cbpat1{    TRISA{0}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//LW Slave select}}}\par\pard
+\cbpat1{{\cf2{    TRISA{1}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//RW Slave select}}}\par\pard
+\cbpat1{{\cf2{    TRISA{2}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//Claw Slave select}}}\par\pard
+\cbpat1{{\cf2{    TRISC{0}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//Camera Slave select}}}\par\pard
+\cbpat1{{\cf2{    TRISC{1}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//SPECIAL Slave select}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     UpdateSPECIAL}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     CamArray, char index}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Loads a message into the SSPBUF to send to the SPECIAL PIC}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{UpdateSPECIAL}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{Arr}}{\cf11{[],}} {\cf2{}}{\cf13{char}} {\cf2{byteNum}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    LW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    RW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CLAW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CAMERA_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SPECIAL_SLAVE = HI;}}}\par\pard
+\cbpat1{{\cf2{    SPECIAL_SLAVE}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    SSPBUF}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    SSPBUF}}{\cf11{=}} {\cf2{Arr}}{\cf11{[}}{\cf2{byteNum}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     UpdateLW}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     Character Array Pointer}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Loads a message into the SSPBUF to send to the LW PIC}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{UpdateLW}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{Arr}}{\cf11{[],}} {\cf2{}}{\cf13{char}} {\cf2{index}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//	Ensure all SS lines HI before starting a transmission}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//LW_SLAVE = HI;}}}\par\pard
+\cbpat1{{\cf2{    RW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CLAW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CAMERA_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SPECIAL_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    LW_SLAVE}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}}{\cf11{;}} {\cf2{}}{\cf5{//read SSPBUF to clear BF flag}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//	Start Transmission}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}} {\cf11{=}} {\cf2{Arr}}{\cf11{[}}{\cf2{index}}{\cf11{];}} {\cf2{}}{\cf5{///*character array address*/ [ByteNum]; *(DataArray + index)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     UpdateRW}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     Character Array Pointer}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Loads a message into the SSPBUF to send to the RW PIC}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{UpdateRW}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{Arr}}{\cf11{[],}} {\cf2{}}{\cf13{char}} {\cf2{index}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//	Ensure all SS lines HI before starting a transmission}}}\par\pard
+\cbpat1{{\cf2{    LW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//RW_SLAVE = HI;}}}\par\pard
+\cbpat1{{\cf2{    CLAW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CAMERA_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SPECIAL_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    RW_SLAVE}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}}{\cf11{;}} {\cf2{}}{\cf5{//read SSPBUF to clear BF flag}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//	Start Transmission}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}} {\cf11{=}} {\cf2{Arr}}{\cf11{[}}{\cf2{index}}{\cf11{];}} {\cf2{}}{\cf5{///*character array address*/ [ByteNum];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     UpdateCLAW}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     Character Array Pointer}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Loads a message into the SSPBUF to send to the CLAW PIC}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{UpdateCLAW}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{Arr}}{\cf11{[],}} {\cf2{}}{\cf13{char}} {\cf2{index}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//	Ensure all SS lines HI before starting a transmission}}}\par\pard
+\cbpat1{{\cf2{    LW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    RW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//CLAW_SLAVE = HI;}}}\par\pard
+\cbpat1{{\cf2{    CAMERA_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SPECIAL_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    CLAW_SLAVE}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}}{\cf11{;}} {\cf2{}}{\cf5{//read SSPBUF to clear BF flag}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//	Start Transmission}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}} {\cf11{=}} {\cf2{Arr}}{\cf11{[}}{\cf2{index}}{\cf11{];}} {\cf2{}}{\cf5{///*character array address*/ [ByteNum];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{     UpdateCAMERA}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{     Character Array Pointer}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Loads a message into the SSPBUF to send to the CAMERA PIC}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{UpdateCAMERA}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{Arr}}{\cf11{[],}} {\cf2{}}{\cf13{char}} {\cf2{index}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//	Ensure all SS lines HI before starting a transmission}}}\par\pard
+\cbpat1{{\cf2{    LW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    RW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CLAW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//CAMERA_SLAVE = HI;}}}\par\pard
+\cbpat1{{\cf2{    SPECIAL_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    CAMERA_SLAVE}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}}{\cf11{;}} {\cf2{}}{\cf5{//read SSPBUF to clear BF flag}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//	Start Transmission}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}} {\cf11{=}} {\cf2{Arr}}{\cf11{[}}{\cf2{index}}{\cf11{];}} {\cf2{}}{\cf5{///*character array address*/ [ByteNum];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    StopRW}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{	None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Sends Messages to the RW to stop motion}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{StopRW}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//	Ensure all SS lines HI before starting a transmission}}}\par\pard
+\cbpat1{{\cf2{    LW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//RW_SLAVE = HI;}}}\par\pard
+\cbpat1{{\cf2{    CLAW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CAMERA_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SPECIAL_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    RW_SLAVE}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}}{\cf11{;}} {\cf2{}}{\cf5{//read SSPBUF to clear BF flag}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//	Start Transmission}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{b{1}{0}{0}{0}{0}{0}{0}{0}}}{\cf11{;}} {\cf2{}}{\cf5{// Stop Motor}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    StopRW}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{	None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{     Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     Sends Messages to the RW to stop motion}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{StopLW}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//	Ensure all SS lines HI before starting a transmission}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//LW_SLAVE = HI;}}}\par\pard
+\cbpat1{{\cf2{    RW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CLAW_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    CAMERA_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SPECIAL_SLAVE}} {\cf11{=}} {\cf2{HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    LW_SLAVE}} {\cf11{=}} {\cf2{LO}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}}{\cf11{;}} {\cf2{}}{\cf5{//read SSPBUF to clear BF flag}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//	Start Transmission}}}\par\pard
+\cbpat1{{\cf2{    SSPBUF}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{b{1}{0}{0}{0}{0}{0}{0}{0}}}{\cf11{;}} {\cf2{}}{\cf5{// Stop Motor}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}}

@@ -1,0 +1,114 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red51\green00\blue102;\red24\green97\blue167;\red50\green186\blue06;\red00\green102\blue51;\red00\green102\blue51;\red166\green23\blue97;\red83\green116\blue176;\red102\green51\blue00;\red154\green154\blue154;\red85\green85\blue85;\red255\green48\blue48;\red244\green140\blue35;\red00\green00\blue255;\red209\green28\blue237;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Module}}}\par\pard
+\cbpat1{{\cf6{     E{1}{2}{8}_Servo.c}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     servo output for testing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{     sets rollover period to {2}{1}.{8}{5}mS ased on {2}{4}MHz clock.}}}\par\pard
+\cbpat1{{\cf6{     Starts low, goes high at [period ({0}xffff) minus desired pulse length]}}}\par\pard
+\cbpat1{{\cf6{     DYL edited code {0}{2}/{2}{6}/{1}{3}}}}\par\pard
+\cbpat1{{\cf6{     Because servo line goes thru an inverting Schmitt trigger, line now starts high (maybe)}}}\par\pard
+\cbpat1{{\cf6{     and is set low on OC and then toggles on overflow}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ History}}}\par\pard
+\cbpat1{{\cf6{ When           Who     What/Why}}}\par\pard
+\cbpat1{{\cf6{ -------------- ---     --------}}}\par\pard
+\cbpat1{{\cf6{ {0}{2}/{2}{5}/{1}{3} {2}{2}:{0}{0} BLS     adapted Ed's servolib for our purposes}}}\par\pard
+\cbpat1{{\cf6{ {0}{2}/{2}{6}/{1}{3} {0}{1}:{3}{0} DYL     mapped to port U{4} --> Timer{2} Channel{6}}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Include Files -----------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/* include header files for this state machine as well as any machines at the}}}\par\pard
+\cbpat1{{\cf6{   next lower level in the hierarchy that are sub-machines to this machine*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf8{#include <stdio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <stdlib.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <mc{9}s{1}{2}e{1}{2}{8}.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <S{1}{2}e{1}{2}{8}bits.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <Bin_Const.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <termio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <hidef.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"S{1}{2}eVec.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#include}} {\cf9{"E{1}{2}{8}_PWM.h"}}{\cf8{}}         {\cf5{//has all prescale definitions}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#include}} {\cf9{"E{1}{2}{8}_SPI.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"E{1}{2}{8}_Servo.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"FAC_FSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"NavigationFSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"AlignPPService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"DriveTrainService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ArtilleryFSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Module Defines ----------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define TicksPerMicroSec   {3}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{//Physical min and max limits of servo}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define MIN_POSITION       {6}{0}{0}}}             {\cf5{//-{9}{0} degrees}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define MAX_POSITION       {2}{4}{0}{0}}}            {\cf5{//+{9}{0} degrees}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define NEUTRAL_POSITION   {1}{5}{0}{0}}}            {\cf5{//{0} degrees}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{//These need to be updated once the servo is mounted in position}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define LOADING_ANGLE   {6}{0}}}{\cf5{//{6}{0}            //This is our loading position                                        }}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define SHOOTING_ANGLE  {1}{5}{0}}}{\cf5{//{1}{5}{0}            //This is our shooting position}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*------------------------------ Module Code ------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf5{//Init the servo timer on Timer{2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{InitServoHardware}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    TIM{2}_TSCR{1}}} {\cf11{=}} {\cf2{_S{1}{2}_TEN}}{\cf11{;}}     {\cf2{}}{\cf5{//enable timer system}}}\par\pard
+\cbpat1{{\cf2{    TIM{2}_TSCR{2}}} {\cf11{=}} {\cf2{PSCALE{8}}}{\cf11{;}}      {\cf2{}}{\cf5{//Divide by {8}; {1} tick = .{3}{3}{3} uS}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Set up OC{4} to time the PWM pulse to the servo}}}\par\pard
+\cbpat1{{\cf2{    TIM{2}_TIOS}} {\cf11{|=}} {\cf2{_S{1}{2}_IOS{6}}}{\cf11{;}}    {\cf2{}}{\cf5{//set Timer{2}, Channel{6} to output compare}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf6{/* NO INTERRUPTS}}}\par\pard
+\cbpat1{{\cf6{    TIM{2}_TFLG{1} = _S{1}{2}_C{6}F;     //clear any existing flag coming out of reset}}}\par\pard
+\cbpat1{{\cf6{    TIM{2}_TIE |= _S{1}{2}_C{6}I;      //enable Timer{2} Channel{6} local interrupt}}}\par\pard
+\cbpat1{{\cf6{    EnableInterrupts;          //this seems redudent, but why not}}}\par\pard
+\cbpat1{{\cf6{    */}}{\cf2{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{    TIM{2}_TCTL{1}}} {\cf11{|= (}}{\cf2{_S{1}{2}_OM{6}}}{\cf11{);}}  {\cf2{}}{\cf5{//sets line low}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//TIM{2}_TCTL{1} |= (_S{1}{2}_OM{6} | _S{1}{2}_OL{6}); //sets line high}}}\par\pard
+\cbpat1{{\cf2{    TIM{2}_TTOV}} {\cf11{|=}} {\cf2{_S{1}{2}_TOV{6}}}{\cf11{;}}    {\cf2{}}{\cf5{//set overflow toggle for Channel{6}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf15{ArtilleryServoLoad}}{\cf2{}}{\cf11{();}}      {\cf2{}}{\cf5{//initialize in "closed" servo gate}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//printf("Servo Hardware Initialized. \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf5{//Shooting --> moves servo to shooting position}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{ArtilleryServoShoot}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetAngle}}{\cf2{}}{\cf11{(}}{\cf2{SHOOTING_ANGLE}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf5{//Loading --> moves servo to loading position}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{ArtilleryServoLoad}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetAngle}}{\cf2{}}{\cf11{(}}{\cf2{LOADING_ANGLE}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{SetAngle}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{unsigned int}} {\cf2{InputAngle}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{//need to convert an input angle to a time in uS}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{static unsigned int}} {\cf2{ServoPosition}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{((}}{\cf2{InputAngle}} {\cf11{<=}} {\cf2{}}{\cf4{{1}{8}{0}}}{\cf2{}}{\cf11{) && (}}{\cf2{InputAngle}} {\cf11{>=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{))}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{            ServoPosition}} {\cf11{=}} {\cf2{}}{\cf4{{6}{0}{0}}} {\cf2{}}{\cf11{+}} {\cf2{}}{\cf4{{1}{0}}}{\cf2{}}{\cf11{*}}{\cf2{InputAngle}}{\cf11{;}} {\cf2{}}{\cf5{//scales InputAngle from {0}-{1}{8}{0} to {6}{0}{0}-{2}{4}{0}{0}}}}\par\pard
+\cbpat1{{\cf2{            TIM{2}_TC{6}}} {\cf11{= (}}{\cf2{}}{\cf4{{0}xffff}} {\cf2{}}{\cf11{- (}}{\cf2{ServoPosition}} {\cf11{*}} {\cf2{TicksPerMicroSec}}{\cf11{));}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{//printf("\\n Invalid Servo PWM angle requested");}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}{\cf2{}}}\par\pard
+\cbpat1{}}

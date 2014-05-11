@@ -1,0 +1,276 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{------------------------------------------------------------------------------}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{Debbie Li}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{ME{2}{1}{8}C Project}} {\cf11{-}} {\cf2{SPECIAL Comms}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{SPI{1}}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{communication with SPECIAL as master device}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{SPI{2}}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{communication with MasterPic as slave device}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{HARDWARE PINOUT}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{A{0}}} {\cf11{-}} {\cf2{SDO{2}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{A{1}}} {\cf11{-}} {\cf2{SS{2}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{A{2}}} {\cf11{-}} {\cf2{testing LED}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{on when idle}}{\cf11{,}} {\cf2{off during interrupt}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{A{3}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{A{4}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{A{5}}} {\cf11{-}} {\cf2{SS{1}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{A{6}}} {\cf11{-}} {\cf2{SDO{1}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{A{7}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{B{0}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{B{1}}} {\cf11{-}} {\cf2{SDI{1}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{B{2}}} {\cf11{-}} {\cf2{SDI{2}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{B{3}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{B{4}}} {\cf11{-}} {\cf2{SCK{1}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{B{5}}} {\cf11{-}} {\cf2{SCK{2}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{B{6}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{B{7}}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{------------------------------------------------------------------------------}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{hardware set up}} {\cf12{for}} {\cf2{PIC{1}{6}F{1}{8}{2}{7}}}}\par\pard
+\cbpat1{{\cf8{#include <p{1}{6}F{1}{8}{2}{7}.inc>}}}\par\pard
+\cbpat1{{\cf2{list P}}{\cf11{=}}{\cf2{PIC{1}{6}F{1}{8}{2}{7}}\par\pard
+\cbpat1{       __config _CONFIG{1}}}{\cf11{,}} {\cf2{_FOSC_INTOSC}} {\cf11{&}} {\cf2{_CLKOUTEN_OFF}} {\cf11{&}} {\cf2{_MCLRE_OFF}} {\cf11{&}} {\cf2{_CP_OFF}} {\cf11{&}} {\cf2{_WDTE_OFF}} {\cf11{&}} {\cf2{_PWRTE_ON}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{       {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{FOSC_INTOSC sets internal oscillator}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{CLKOUTEN_OFF I}}{\cf11{/}}{\cf2{O function on}} {\cf15{CLKOUT}} {\cf2{}}{\cf11{(}}{\cf2{SDO{1}}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{MCLRE_OFF sets pin to digital}} {\cf15{input}} {\cf2{}}{\cf11{(}}{\cf2{SS{1}}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{------------------------------------------------------------------------------}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{VARIABLE DEFINITIONS}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{------------------------------------------------------------------------------}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{cblock}} {\cf4{{0}x{7}{0}}} {\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{Define variable}} {\cf14{register}} {\cf2{locations}} {\cf11{-}} {\cf2{user variables allocated contiguously}\par\pard
+\cbpat1{lastButton}\par\pard
+\cbpat1{currButton}\par\pard
+\cbpat1{lastSS}\par\pard
+\cbpat1{currSS}\par\pard
+\cbpat1{index}\par\pard
+\cbpat1{Rx_data}\par\pard
+\cbpat1{endc}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{------------------------------------------------------------------------------}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#DEFINES}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{------------------------------------------------------------------------------}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define		SPECIAL_SS	{1}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define		MASTER_SS	{5}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define		IDLE_LED	{2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define		BF{1}_LED		{7}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define		BF{2}_LED		{3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define		BUTTON_BIT	{3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define 	TRASH_MESSAGE {0}xAA}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{org}}		{\cf4{{4}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf12{goto}}	{\cf2{InterruptResponseRoutine}\par\pard
+\cbpat1{org}}		{\cf4{{0}}}					{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{reset vector}}}\par\pard
+\cbpat1{{\cf12{goto}}	{\cf2{Initialization}\par\pard
+\cbpat1{org}}		{\cf4{{5}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{Initialization}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{hardware initialization}\par\pard
+\cbpat1{banksel OSCCON}\par\pard
+\cbpat1{movlw	b}}{\cf3{'{0}{1}{1}{1}{1}{0}{1}{0}'}}{\cf2{}}			{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{IRCF}}{\cf11{<}}{\cf2{}}{\cf4{{3}}}{\cf2{}}{\cf11{:}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{> =}} {\cf2{}}{\cf4{{1}{1}{1}{1} {1}{6}}}{\cf2{MHz HF}}{\cf11{,}} {\cf2{SCS}}{\cf11{<}}{\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{:}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{> =}} {\cf2{}}{\cf4{{1}}}{\cf2{x clock determined by internal oscillator block}\par\pard
+\cbpat1{                                      movwf	OSCCON}\par\pard
+\cbpat1{                                      banksel APFCON{0}}\par\pard
+\cbpat1{                                      bsf		APFCON{0}}}{\cf11{,}}{\cf2{SS{1}SEL}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{by}} {\cf12{default}} {\cf2{SS{1} is on B{5}}}{\cf11{,}} {\cf2{need to change it to A{5}}\par\pard
+\cbpat1{    bsf		APFCON{0}}}{\cf11{,}}{\cf2{SDO{1}SEL}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{by}} {\cf12{default}} {\cf2{SDO{1} is on B{2}}}{\cf11{,}} {\cf2{need to move to A{6}}}}\par\pard
+\cbpat1{    {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{initialize variables}\par\pard
+\cbpat1{movlw}}	{\cf4{{0}x{0}{1}}}}\par\pard
+\cbpat1{{\cf2{movwf	lastButton}\par\pard
+\cbpat1{movlw}}	{\cf4{{0}x{0}{1}}}}\par\pard
+\cbpat1{{\cf2{movwf	lastSS}\par\pard
+\cbpat1{movlw}}	{\cf4{{0}x{0}{0}}}}\par\pard
+\cbpat1{{\cf2{movwf	index}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{initialize ports}\par\pard
+\cbpat1{banksel	PORTA}\par\pard
+\cbpat1{clrf	PORTA}\par\pard
+\cbpat1{banksel	PORTB}\par\pard
+\cbpat1{clrf	PORTB}\par\pard
+\cbpat1{banksel	ANSELA}\par\pard
+\cbpat1{clrf	ANSELA}}			{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{digital I}}{\cf11{/}}{\cf2{O pins}\par\pard
+\cbpat1{banksel	ANSELB}\par\pard
+\cbpat1{clrf	ANSELB}}			{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{digital I}}{\cf11{/}}{\cf2{O pins}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{set ports as inputs}} {\cf12{or}} {\cf2{outputs}\par\pard
+\cbpat1{banksel	TRISA}\par\pard
+\cbpat1{movlw	b}}{\cf3{'{0}{0}{1}{1}{0}{0}{0}{0}'}}{\cf2{}\par\pard
+\cbpat1{movwf	TRISA}\par\pard
+\cbpat1{movlw	b}}{\cf3{'{0}{0}{0}{1}{1}{1}{1}{0}'}}{\cf2{}\par\pard
+\cbpat1{movwf	TRISB}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{initialize SPI{1}}} {\cf11{-}} {\cf2{slave}\par\pard
+\cbpat1{banksel	SSP{1}STAT}\par\pard
+\cbpat1{clrf	SSP{1}STAT}}			{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{SMP}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{,}} {\cf2{CKE}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}}\par\pard
+\cbpat1{{\cf2{               banksel	SSP{1}CON{1}}\par\pard
+\cbpat1{               movlw 	b}}{\cf3{'{0}{0}{1}{1}{0}{1}{0}{0}'}}{\cf2{}} 		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{SSPEN}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{,}} {\cf2{CKP}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{,}} {\cf2{SSPM}}{\cf11{<}}{\cf2{}}{\cf4{{3}}}{\cf2{}}{\cf11{:}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{> =}} {\cf2{SPI slave mode}}{\cf11{,}} {\cf2{SS pin control enabled}\par\pard
+\cbpat1{                                movwf	SSP{1}CON{1}}}}\par\pard
+\cbpat1{                                {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{initialize SPI{2}}} {\cf11{-}} {\cf2{master}\par\pard
+\cbpat1{banksel	SSP{2}STAT}\par\pard
+\cbpat1{clrf	SSP{2}STAT}}			{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{SMP}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{,}} {\cf2{CKE}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}}\par\pard
+\cbpat1{{\cf2{               banksel	SSP{2}CON{1}}\par\pard
+\cbpat1{               movlw 	b}}{\cf3{'{0}{0}{1}{1}{0}{0}{1}{1}'}}{\cf2{}} 		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{SSPEN}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{,}} {\cf2{CKP}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{,}} {\cf2{SSPM}}{\cf11{<}}{\cf2{}}{\cf4{{3}}}{\cf2{}}{\cf11{:}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{> =}} {\cf2{SPI Master w Clock}} {\cf11{=}} {\cf2{TMR{2} output}}{\cf11{/}}{\cf2{}}{\cf4{{2}}}}\par\pard
+\cbpat1{{\cf2{                                movwf	SSP{2}CON{1}}}}\par\pard
+\cbpat1{                                {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{initialize timer{2}}} {\cf12{for}} {\cf2{serial clock}\par\pard
+\cbpat1{banksel PR{2}}\par\pard
+\cbpat1{movlw	b}}{\cf3{'{1}{0}{1}{0}{0}{0}{0}{0}'}}{\cf2{}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf4{{1}{6}{0}}} {\cf2{ticks}} {\cf11{-->}} {\cf2{}}{\cf4{{4}{0}u}}{\cf2{S rollover}\par\pard
+\cbpat1{movwf	PR{2}}}				{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{set PR{2}}} {\cf11{=}} {\cf2{}}{\cf4{{1}{6}{0}}}}\par\pard
+\cbpat1{{\cf2{          banksel	T{2}CON}\par\pard
+\cbpat1{          movlw	b}}{\cf3{'{0}{0}{0}{0}{0}{1}{0}{0}'}}{\cf2{}} 	{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{TMR{2}ON}}{\cf11{,}} {\cf2{Prescale}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}}\par\pard
+\cbpat1{{\cf2{                   movwf	T{2}CON}}}\par\pard
+\cbpat1{                   {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{initialize interrupts}\par\pard
+\cbpat1{banksel	INTCON}\par\pard
+\cbpat1{bsf		INTCON}}{\cf11{,}}{\cf2{GIE}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{enable global interrupts}\par\pard
+\cbpat1{bsf		INTCON}}{\cf11{,}}{\cf2{PEIE}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{enable peripheral interrupts}\par\pard
+\cbpat1{banksel	PIE{1}}\par\pard
+\cbpat1{bsf		PIE{1}}}{\cf11{,}}{\cf2{SSP{1}IE}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{enable SSP{1} interrupt}\par\pard
+\cbpat1{bsf		PIE{4}}}{\cf11{,}}{\cf2{SSP{2}IE}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{enable SSP{2} interrupt}\par\pard
+\cbpat1{banksel	PIR{1}}\par\pard
+\cbpat1{bcf		PIR{1}}}{\cf11{,}}{\cf2{SSP{1}IF}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{clear any interrupts on start up}\par\pard
+\cbpat1{bcf		PIR{4}}}{\cf11{,}}{\cf2{SSP{2}IF}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{clear any interrupts on start up}}}\par\pard
+\cbpat1{{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf12{assert}} {\cf2{slave select to SPECIAL}\par\pard
+\cbpat1{banksel	PORTA}\par\pard
+\cbpat1{bsf		PORTA}}{\cf11{,}}{\cf2{SPECIAL_SS}\par\pard
+\cbpat1{bcf		PORTA}}{\cf11{,}}{\cf2{BF{1}_LED}\par\pard
+\cbpat1{bcf		PORTA}}{\cf11{,}}{\cf2{BF{2}_LED}\par\pard
+\cbpat1{bsf		PORTA}}{\cf11{,}}{\cf2{IDLE_LED}}			{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{light LED after initialization}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf12{goto}}	{\cf2{MAIN}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{MAIN}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{banksel	PORTA}\par\pard
+\cbpat1{bsf		PORTA}}{\cf11{,}}{\cf2{IDLE_LED}}			{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{LED on when idling}}}\par\pard
+\cbpat1{{\cf12{goto}}	{\cf2{MAIN}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{InterruptResponseRoutine}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{DetermineInterrupt}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{banksel	PIR{1}}\par\pard
+\cbpat1{btfss	PIR{1}}}{\cf11{,}}{\cf2{SSP{1}IF}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{check}} {\cf12{if}} {\cf2{Buffer{1}Full}}}\par\pard
+\cbpat1{{\cf12{goto}}	{\cf2{Else_}}}\par\pard
+\cbpat1{{\cf12{goto}}	{\cf2{Buffer{1}Full}\par\pard
+\cbpat1{Else_}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{btfsc	PIR{4}}}{\cf11{,}}{\cf2{SSP{2}IF}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{check}} {\cf12{if}} {\cf2{Buffer{2}Full}}}\par\pard
+\cbpat1{{\cf12{goto}}	{\cf2{Buffer{2}Full}\par\pard
+\cbpat1{retfie}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{Buffer{1}Full}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{received data from MASTER}}{\cf11{,}} {\cf2{xfer to SPECIAL}\par\pard
+\cbpat1{banksel	PIR{1}}\par\pard
+\cbpat1{bcf		PIR{1}}}{\cf11{,}}{\cf2{SSP{1}IF}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{clear interrupt}\par\pard
+\cbpat1{banksel	SSP{1}BUF}\par\pard
+\cbpat1{movf	SSP{1}BUF}}{\cf11{,}}{\cf2{w}\par\pard
+\cbpat1{xorlw	TRASH_MESSAGE}\par\pard
+\cbpat1{banksel	STATUS}\par\pard
+\cbpat1{btfss	STATUS}}{\cf11{,}}{\cf2{Z}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf12{if}} {\cf2{zero bit set}}{\cf11{,}} {\cf2{then DontProcess message}}{\cf11{,}} {\cf2{}}{\cf12{else}} {\cf2{SendMessage}}}\par\pard
+\cbpat1{    {\cf12{goto}}	{\cf2{SendMessage}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{message is good}}{\cf11{,}} {\cf2{}}{\cf12{not}} {\cf2{trash}}}\par\pard
+\cbpat1{{\cf12{goto}}	{\cf2{DontProcess}}		{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{message is trash}}{\cf11{,}} {\cf2{don}}{\cf3{'t process}}}\par\pard
+\cbpat1{{\cf3{}}}\par\pard
+\cbpat1{{\cf3{Buffer{2}Full:				;received data from SPECIAL, xfer to MASTER}}}\par\pard
+\cbpat1{{\cf3{;bsf		PORTA,BF{2}_LED}}}\par\pard
+\cbpat1{{\cf3{banksel	PIR{4}}}}\par\pard
+\cbpat1{{\cf3{bcf		PIR{4},SSP{2}IF		;clear interrupt}}}\par\pard
+\cbpat1{{\cf3{banksel	SSP{2}BUF}}}\par\pard
+\cbpat1{{\cf3{movf	SSP{2}BUF,w		;read SSP{2}BUF and write onto SSP{1}BUF}}}\par\pard
+\cbpat1{{\cf3{;movlw	b'}}{\cf2{}}{\cf4{{1}{0}{1}{0}{1}{0}{1}{0}}}{\cf2{}}{\cf3{'}}}\par\pard
+\cbpat1{{\cf3{movwf	SSP{1}BUF}}}\par\pard
+\cbpat1{{\cf3{banksel	PORTA}}}\par\pard
+\cbpat1{{\cf3{bcf		PORTA,BF{2}_LED}}}\par\pard
+\cbpat1{{\cf3{retfie}}}\par\pard
+\cbpat1{{\cf3{}}}\par\pard
+\cbpat1{{\cf3{SendMessage:}}}\par\pard
+\cbpat1{{\cf3{;if index < {5}, assert SS and start xferring messages}}}\par\pard
+\cbpat1{{\cf3{banksel	PORTA}}}\par\pard
+\cbpat1{{\cf3{bsf		PORTA,BF{1}_LED}}}\par\pard
+\cbpat1{{\cf3{bcf		PORTA,SPECIAL_SS}}}\par\pard
+\cbpat1{{\cf3{banksel	SSP{1}BUF}}}\par\pard
+\cbpat1{{\cf3{movf	SSP{1}BUF,w		;read SSP{1}BUF and write onto SSP{2}BUF}}}\par\pard
+\cbpat1{{\cf3{;movlw	b'}}{\cf2{}}{\cf4{{0}{0}{1}{1}{1}{1}{0}{0}}}{\cf2{}}{\cf3{'}}}\par\pard
+\cbpat1{{\cf3{movwf	SSP{2}BUF}}}\par\pard
+\cbpat1{{\cf3{banksel	PORTA}}}\par\pard
+\cbpat1{{\cf3{bcf		PORTA,BF{1}_LED}}}\par\pard
+\cbpat1{{\cf3{retfie}}}\par\pard
+\cbpat1{{\cf3{}}}\par\pard
+\cbpat1{{\cf3{DontProcess:}}}\par\pard
+\cbpat1{{\cf3{;if index = {5}, deassert SS, do not xfer messages}}}\par\pard
+\cbpat1{{\cf3{banksel	PORTA}}}\par\pard
+\cbpat1{{\cf3{;bcf		PORTA,BF{1}_LED}}}\par\pard
+\cbpat1{{\cf3{bsf		PORTA,SPECIAL_SS	; deassert SS}}}\par\pard
+\cbpat1{{\cf3{banksel	SSP{1}BUF				; NEED TO READ bc slave cannot update SSP{1}BUF without first reading the buffer}}}\par\pard
+\cbpat1{{\cf3{movf    SSP{1}BUF,w}}}\par\pard
+\cbpat1{{\cf3{retfie}}}\par\pard
+\cbpat1{{\cf3{}}}\par\pard
+\cbpat1{{\cf3{}}}\par\pard
+\cbpat1{{\cf3{}}}\par\pard
+\cbpat1{{\cf3{END}}{\cf2{}}}\par\pard
+\cbpat1{}}

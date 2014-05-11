@@ -1,0 +1,573 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red51\green00\blue102;\red24\green97\blue167;\red50\green186\blue06;\red00\green102\blue51;\red00\green102\blue51;\red166\green23\blue97;\red83\green116\blue176;\red102\green51\blue00;\red154\green154\blue154;\red85\green85\blue85;\red255\green48\blue48;\red244\green140\blue35;\red00\green00\blue255;\red209\green28\blue237;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf5{//#define TEST}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   This module initializes the PWM capabilities on ports U{0}, U{1}, and U{4} of the E{1}{2}{8}.}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{   PWM_CHANNEL{0} & PWM_CHANNEL{1} driven in locked anti-phase for two wheel drive, change}}}\par\pard
+\cbpat1{{\cf6{   direction easily... easy to implement in hardware and software}}}\par\pard
+\cbpat1{{\cf6{   PWM_CHANNEL{4} driven with PWM duty {0}-{1}{0}{0} --> corresponds from {0} - {1}{8}V}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Debbie Li {0}{2}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Revisions}}}\par\pard
+\cbpat1{{\cf6{ When           Who     What/Why}}}\par\pard
+\cbpat1{{\cf6{ -------------- ---     --------}}}\par\pard
+\cbpat1{{\cf6{ {0}{2}/{0}{1}/{2}{0}{1}{3}     BMJ     Changed code to initialize on {4} ports to drive {2} motors}}}\par\pard
+\cbpat1{{\cf6{                        in Anti-Phase Locked Drive mode. Conversation with Jina}}}\par\pard
+\cbpat1{{\cf6{                        determined that this would be easiest from an electronics}}}\par\pard
+\cbpat1{{\cf6{                        standpoint. Can revisit, and modify if we want to, no}}}\par\pard
+\cbpat1{{\cf6{                        problem}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Include Files -----------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/* include header files for this state machine as well as any machines at the}}}\par\pard
+\cbpat1{{\cf6{   next lower level in the hierarchy that are sub-machines to this machine*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf8{#include <stdio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <stdlib.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <mc{9}s{1}{2}e{1}{2}{8}.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <S{1}{2}e{1}{2}{8}bits.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <Bin_Const.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <termio.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include <hidef.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"S{1}{2}eVec.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#include}} {\cf9{"E{1}{2}{8}_PWM.h"}}{\cf8{}}         {\cf5{//has all prescale definitions}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#include}} {\cf9{"E{1}{2}{8}_SPI.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"E{1}{2}{8}_Servo.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"FAC_FSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"NavigationFSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"AlignPPService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"DriveTrainService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"ArtilleryFSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Module Defines ----------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define PERIOD  {1}{0}{0}}} {\cf5{//{7}{5}{0}{0} KHz Signal}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define FW_PERIOD {1}{0}{0}}}{\cf5{//flywheel period}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{//These are our new parameters for setting full and half speed}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define FULL_FORWARD {7}{9}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define FULL_REVERSE {2}{1}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define HALF_FORWARD {6}{8}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define HALF_REVERSE {3}{2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define FULL_ROTATE_{1} {2}{7}}}{\cf5{//{6}{8}        //Remember to adjust both rotates {1} and {2}, keep orientation}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define FULL_ROTATE_{2} {7}{3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define HALF_ROTATE_{1} {3}{7}}}   {\cf5{//{3}{7} is too slow}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define HALF_ROTATE_{2} {6}{3}}}   {\cf5{//{6}{3} is too slow}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define CLOSE_SHOT {1}{9}}}     {\cf5{//{3}ft //{1}{9}}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define FAR_SHOT {2}{1}}}       {\cf5{//{5}ft}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define PP_SHOT {2}{3}}}        {\cf5{//long ways}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}{\cf8{#define LEVIATHAN_PWM {5}{0}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/*------------------------------ Module Variables -------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*static unsigned int Wheel{0}Speed = {0};}}}\par\pard
+\cbpat1{{\cf6{static unsigned int Wheel{1}Speed = {0};}}}\par\pard
+\cbpat1{{\cf6{static unsigned int Wheel{0}ThreeEdgeWidth = {1};}}}\par\pard
+\cbpat1{{\cf6{static unsigned int Wheel{1}ThreeEdgeWidth = {1};}}}\par\pard
+\cbpat1{{\cf6{*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/*----------------------------- Module Prototypes -------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{//void interrupt _Vec_tim{0}ch{4} Wheel{0}EncoderIR( void );}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{//void interrupt _Vec_tim{0}ch{5} Wheel{1}EncoderIR( void );}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*------------------------------ Module Code ------------------------------*/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{InitPWMHardware}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//DRIVETRAIN}}}\par\pard
+\cbpat1{{\cf2{    MODRR}} {\cf11{|=}} {\cf2{_S{1}{2}_MODRR{0}}}{\cf11{;}}   {\cf2{}}{\cf5{//map PWM{0} to PORT U{0} --> wheel {0}}}}\par\pard
+\cbpat1{{\cf2{    MODRR}} {\cf11{|=}} {\cf2{_S{1}{2}_MODRR{1}}}{\cf11{;}}   {\cf2{}}{\cf5{//map PWM{1} to port U{1} --> wheel {1}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//FLYWHEEL}}}\par\pard
+\cbpat1{{\cf2{    MODRR}} {\cf11{|=}} {\cf2{_S{1}{2}_MODRR{4}}}{\cf11{;}}   {\cf2{}}{\cf5{//map PWM{2} to PORT U{4} --> flywheel}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//set PWM polarity output low}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//PWMPOL |= _S{1}{2}_PPOL{0};    //set output initially low}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//PWMPOL |= _S{1}{2}_PPOL{1};    //set output initially low}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//PWMPOL |= _S{1}{2}_PPOL{4};    //set output initially low - Hex inverter on FLY board}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{    {\cf5{//WANT {8}KHz signal (based on Motor Characterization)}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//numTicks = ({2}{4}MHz/{7}.{5}KHz)/PRESCALE_{1}{6}/SCALE*{2}_{1} = {1}{0}{0} Ticks for periodLength}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    PWMCLK}} {\cf11{=}} {\cf2{_S{1}{2}_PCLK{0}}}{\cf11{;}}  {\cf2{}}{\cf5{//use scaled clock, in addition to pre-scaling}}}\par\pard
+\cbpat1{{\cf2{    PWMCLK}} {\cf11{|=}} {\cf2{_S{1}{2}_PCLK{1}}}{\cf11{;}} {\cf2{}}{\cf5{//use scaled clock, in addition to pre-scaling}}}\par\pard
+\cbpat1{{\cf2{    PWMPRCLK}} {\cf11{=}} {\cf2{PSCALE{1}{6}}}{\cf11{;}}  {\cf2{}}{\cf5{//divide by {1}{6}}}}\par\pard
+\cbpat1{{\cf2{    PWMSCLA}} {\cf11{=}} {\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{;}}         {\cf2{}}{\cf5{//divide by SCALE*{2}}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    PWMPER{0}}} {\cf11{=}} {\cf2{PERIOD}}{\cf11{;}} {\cf2{}}{\cf5{//Set PWM Period Length}}}\par\pard
+\cbpat1{{\cf2{    PWMPER{1}}} {\cf11{=}} {\cf2{PERIOD}}{\cf11{;}} {\cf2{}}{\cf5{//Set PWM Period Length}}}\par\pard
+\cbpat1{{\cf2{    PWMPER{4}}} {\cf11{=}} {\cf2{FW_PERIOD}}{\cf11{;}} {\cf2{}}{\cf5{//PWM Period Length for flywheel}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    PWMDTY{0}}} {\cf11{=}} {\cf2{}}{\cf4{{5}{0}}}{\cf2{}}{\cf11{;}}            {\cf2{}}{\cf5{//initialize duty cycle to {5}{0} --> off}}}\par\pard
+\cbpat1{{\cf2{    PWMDTY{1}}} {\cf11{=}} {\cf2{}}{\cf4{{5}{0}}}{\cf2{}}{\cf11{;}}            {\cf2{}}{\cf5{//initialize duty cycle to {5}{0} --> off}}}\par\pard
+\cbpat1{{\cf2{    PWMDTY{4}}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}             {\cf2{}}{\cf5{//initialize duty cycle to {0} --> off}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    PWME}} {\cf11{|=}} {\cf2{_S{1}{2}_PWME{0}}}{\cf11{;}}     {\cf2{}}{\cf5{//enable the PWM on port U{0}}}}\par\pard
+\cbpat1{{\cf2{    PWME}} {\cf11{|=}} {\cf2{_S{1}{2}_PWME{1}}}{\cf11{;}}     {\cf2{}}{\cf5{//enable the PWM on port U{1}}}}\par\pard
+\cbpat1{{\cf2{    PWME}} {\cf11{|=}} {\cf2{_S{1}{2}_PWME{4}}}{\cf11{;}}     {\cf2{}}{\cf5{//enable the PWM on port U{4}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{InitControlTimerHardware}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{    TIM{0}_TSCR{1}}} {\cf11{=}} {\cf2{_S{1}{2}_TEN}}{\cf11{;}}  {\cf2{}}{\cf5{//Enable timer {0} system}}}\par\pard
+\cbpat1{{\cf2{    TIM{0}_TSCR{2}}} {\cf11{=}} {\cf2{PSCALE{1}{2}{8}}}{\cf11{;}} {\cf2{}}{\cf5{//Divide by {1}{2}{8}; {1} tick = {5}.{3}{3} us}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Setup the port as Output Compare (Timer{0} Ch{4})}}}\par\pard
+\cbpat1{{\cf2{    TIM{0}_TIOS}} {\cf11{|= (}}{\cf2{_S{1}{2}_IOS{4}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//TIM{0}_TCTL{1} |= (_S{1}{2}_OM{4} | _S{1}{2}_OL{4}); //Defaults to pin disconnected}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Initial setting of Compare Register}}}\par\pard
+\cbpat1{{\cf2{    TIM{0}_TC{4}}} {\cf11{=}} {\cf2{}}{\cf4{{1}{8}{7}{5}{0}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//{1}{8}{7}{5}{0}; //{1}{0}{0}ms}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Initial Clear of the Timer Interrupt Flag}}}\par\pard
+\cbpat1{{\cf2{    TIM{0}_TFLG{1}}} {\cf11{=}} {\cf2{_S{1}{2}_C{4}F}}{\cf11{;}} {\cf2{}}{\cf5{//TIM{0}_TFLG{1}_C{4}F;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{    {\cf5{//Enable Interrupts}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//TIM{0}_TIE |= _S{1}{2}_C{4}I;   //Enabled after every Forward/Reverse FULL}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//Disabled after every non-Forward/Reverse FULL}}}\par\pard
+\cbpat1{{\cf2{}\par\pard
+\cbpat1{    EnableInterrupts}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/*void InitEncoderHardware( void )}}}\par\pard
+\cbpat1{{\cf6{\{}}}\par\pard
+\cbpat1{{\cf6{   TIM{0}_TSCR{1} = _S{1}{2}_TEN;  //Enable timer {0} system}}}\par\pard
+\cbpat1{{\cf6{   TIM{0}_TSCR{2} = PSCALE{1}{2}{8}; //Divide by {1}{2}{8}; {1} tick = {5}.{3}{3} us}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{   //Setup the ports as Input Capture (PT{0} and PT{1})}}}\par\pard
+\cbpat1{{\cf6{   //TIM{0}_TIOS &= ~(_S{1}{2}_IOS{0} | _S{1}{2}_IOS{1} ); //Redundant, resets to zero}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{   // Set to interrupt on Rising Edges}}}\par\pard
+\cbpat1{{\cf6{   TIM{0}_TCTL{3} |= _S{1}{2}_EDG{4}A;}}}\par\pard
+\cbpat1{{\cf6{   //TIM{0}_TCTL{3} |= _S{1}{2}_EDG{4}B;}}}\par\pard
+\cbpat1{{\cf6{   TIM{0}_TCTL{3} |= _S{1}{2}_EDG{5}A;}}}\par\pard
+\cbpat1{{\cf6{   //TIM{0}_TCTL{3} |= _S{1}{2}_EDG{5}B;}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{   //Initial Clear of the Timer Interrupt Flag}}}\par\pard
+\cbpat1{{\cf6{   TIM{0}_TFLG{1} = _S{1}{2}_C{4}F; //TIM{0}_TFLG{1}_C{4}F;}}}\par\pard
+\cbpat1{{\cf6{   TIM{0}_TFLG{1} = _S{1}{2}_C{5}F; //TIM{0}_TFLG{1}_C{5}F;}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{   //Enable Interrupts}}}\par\pard
+\cbpat1{{\cf6{   TIM{0}_TIE |= _S{1}{2}_C{4}I; //(TIM{0}_TIE_C{4}I);// | TIM{0}_TIE_C{5}I);}}}\par\pard
+\cbpat1{{\cf6{   TIM{0}_TIE |= _S{1}{2}_C{5}I;}}}\par\pard
+\cbpat1{{\cf6{   EnableInterrupts;}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{   DDRT_DDRT{2} = {1};}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{\}}}}\par\pard
+\cbpat1{{\cf6{*/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    SetDutyCycle}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   char Channel - can be a number from {0} to {3}, represents the channel of PWM}}}\par\pard
+\cbpat1{{\cf6{   on Port U to set duty cylce}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{   char Duty - a percentage, can be a number from {0} to {1}{0}{0}}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   This function sets the duty cycle of the channel selected}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Brandon Jennings {0}{2}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{Channel}}{\cf11{,}} {\cf2{}}{\cf13{char}} {\cf2{Duty}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{switch}} {\cf2{}}{\cf11{(}} {\cf2{Channel}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf12{case}} {\cf2{PWM_CHANNEL{0}}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{((}}{\cf2{Duty}} {\cf11{<=}} {\cf2{}}{\cf4{{1}{0}{0}}}{\cf2{}}{\cf11{) && (}}{\cf2{Duty}} {\cf11{>=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{))}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    PWMDTY{0}}} {\cf11{= (}}{\cf2{Duty}}{\cf11{*}}{\cf2{PERIOD}}{\cf11{)/}}{\cf2{}}{\cf4{{1}{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf5{//printf("An error occured. You entered an incorrect Duty Cycle value into SetDutyCycle. \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf12{case}} {\cf2{PWM_CHANNEL{1}}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{Duty}} {\cf11{<=}} {\cf2{}}{\cf4{{1}{0}{0}}} {\cf2{}}{\cf11{&&}} {\cf2{Duty}} {\cf11{>=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    PWMDTY{1}}} {\cf11{= (}}{\cf2{Duty}}{\cf11{*}}{\cf2{PERIOD}}{\cf11{)/}}{\cf2{}}{\cf4{{1}{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf5{//printf("\\nAn error occured. You entered an incorrect Duty Cycle value into SetDutyCycle. \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf12{case}} {\cf2{PWM_CHANNEL{4}}} {\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{Duty}} {\cf11{<=}} {\cf2{}}{\cf4{{1}{0}{0}}} {\cf2{}}{\cf11{&&}} {\cf2{Duty}} {\cf11{>=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{                    PWMDTY{4}}} {\cf11{= (}}{\cf2{Duty}}{\cf11{*}}{\cf2{FW_PERIOD}}{\cf11{)/}}{\cf2{}}{\cf4{{1}{0}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}                    {\cf5{//printf("\\nAn error occured. You entered an incorrect Duty Cycle value into SetDutyCycle. \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}                {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf12{default}} {\cf2{}}{\cf11{:}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{//No case was hit, throw an error!}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{//printf("\\nAn error occured. You entered an incorrect channel to SetDutyCycle. \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf12{break}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf12{return}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    DriveForwardFull}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function drives both motors in the forward direction}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Brandon Jennings {0}{2}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{DriveForwardFull}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{signed int}} {\cf2{deltaPWM}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{FULL_FORWARD}} {\cf11{+}} {\cf2{deltaPWM}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{FULL_FORWARD}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//printf("F deltaPWM = %i, %i\\r\\n",deltaPWM, QueryTheta(SelfNum));}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    DriveForwardFullHalf}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function drives both motors in the forward direction}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Ben Sagan {0}{3}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{DriveForwardHalf}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{HALF_FORWARD}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{HALF_FORWARD}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    DriveReverseFull}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function drives both motors in the reverse direction}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Brandon Jennings {0}{2}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{DriveReverseFull}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{signed int}} {\cf2{deltaPWM}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{FULL_REVERSE}} {\cf11{+}} {\cf2{deltaPWM}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{FULL_REVERSE}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//printf("R deltaPWM = %i, %i\\r\\n",deltaPWM, QueryTheta(SelfNum));}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    DriveReverseHalf}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function drives both motors in the reverse direction}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Brandon Jennings {0}{2}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{DriveReverseHalf}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{HALF_REVERSE}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SetWheel{0}Speed( {4}{7} );}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{HALF_REVERSE}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    RotateClockwise}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function drives both motors in the opposite directions}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Brandon Jennings {0}{2}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{RotateClockwise}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{FULL_ROTATE_{1}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SetWheel{0}Speed( {4}{7} );}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{FULL_ROTATE_{2}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//puts("rotate clockwise\\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    RotateClockwiseHalf}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function drives both motors in the opposite directions}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Ben Sagan {0}{3}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{RotateClockwiseHalf}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{HALF_ROTATE_{1}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SetWheel{0}Speed( {4}{7} );}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{HALF_ROTATE_{2}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//puts("rotate halfcw \\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    RotateCounterClockwise}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function drives both motors in the reverse direction}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Brandon Jennings {0}{2}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{RotateCounterClockwise}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{FULL_ROTATE_{2}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SetWheel{0}Speed( {4}{7} );}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{FULL_ROTATE_{1}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//puts("rotate ccw\\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    RotateCounterClockwiseHalf}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function drives both motors in the reverse direction}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Ben Sagan {0}{3}/{0}{1}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{RotateCounterClockwiseHalf}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{HALF_ROTATE_{2}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SetWheel{0}Speed( {4}{7} );}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{HALF_ROTATE_{1}}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    StopMotor}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function stops both motors}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Jina Wang {0}{2}/{0}{2}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{StopMotor}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{0}}}{\cf11{,}} {\cf2{}}{\cf4{{5}{0}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{1}}}{\cf11{,}} {\cf2{}}{\cf4{{5}{0}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//puts("stopmotor\\r\\n");}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/***************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    RampUpFlywheel}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function stops both motors}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Debbie Li {0}{2}/{2}{5}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{RampUpFlywheel}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{char}} {\cf2{ShootingDistance}} {\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//PWM {2}{0} shoots {5} feet}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//PWM {1}{8} shoots {3} feet}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{(}}{\cf2{ShootingDistance}} {\cf11{==}} {\cf2{LEVIATHAN}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{4}}}{\cf11{,}} {\cf2{LEVIATHAN_PWM}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else if}} {\cf2{}}{\cf11{(}}{\cf2{ShootingDistance}} {\cf11{==}} {\cf2{}}{\cf4{{3}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{4}}}{\cf11{,}} {\cf2{CLOSE_SHOT}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else if}} {\cf2{}}{\cf11{(}}{\cf2{ShootingDistance}} {\cf11{==}} {\cf2{}}{\cf4{{5}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{4}}}{\cf11{,}} {\cf2{FAR_SHOT}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{4}}}{\cf11{,}} {\cf2{PP_SHOT}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/***************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Function}}}\par\pard
+\cbpat1{{\cf6{    RampUp}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Parameters}}}\par\pard
+\cbpat1{{\cf6{   None}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Returns}}}\par\pard
+\cbpat1{{\cf6{   Nothing}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{   When called, this function stops both motors}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ Author}}}\par\pard
+\cbpat1{{\cf6{   Debbie Li {0}{2}/{2}{5}/{2}{0}{1}{3}}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{RampDownFlywheel}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{4}}}{\cf11{,}} {\cf2{}}{\cf4{{1}{2}}}{\cf2{}}{\cf11{);}} {\cf2{}}{\cf5{//ramp down flywheel}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{FlywheelOff}}{\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{4}}}{\cf11{,}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{);}} {\cf2{}}{\cf5{//turn off flywheel}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{TEST HARNESSS}}}\par\pard
+\cbpat1{{\cf6{****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#ifdef TEST}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{main}} {\cf2{}}{\cf11{(}} {\cf2{}}{\cf13{void}} {\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf13{int}} {\cf2{x}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf15{InitPWMHardware}}{\cf2{}}{\cf11{();}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{InitServoHardware}}{\cf2{}}{\cf11{();}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{    {\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{PWM_CHANNEL{4}}}{\cf11{,}} {\cf2{LEVIATHAN_PWM}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf15{SetAngle}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{1}{3}{5}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{for}} {\cf2{}}{\cf11{(}}{\cf2{x}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}} {\cf2{x}}{\cf11{<}} {\cf2{}}{\cf4{{2}{0}{0}{0}{0}}}{\cf2{}}{\cf11{;}} {\cf2{x}}{\cf11{++)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf15{SetAngle}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{5}{5}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf12{while}} {\cf2{}}{\cf11{(}}{\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}}

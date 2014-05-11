@@ -1,0 +1,90 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf6{/* PWM Module *******************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf8{#include <htc.h>}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"BITDEFS.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#include}} {\cf9{"PWM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf13{static int}} {\cf2{CCPR{1}L_ARRAY}}{\cf11{[}}{\cf2{}}{\cf4{{2}{5}}}{\cf2{}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{static int}} {\cf2{CCP{1}CON_ARRAY}}{\cf11{[}}{\cf2{}}{\cf4{{2}{5}}}{\cf2{}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf5{//Function to initialize PWM on the PIC{1}{6}F{6}{9}{0}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf13{void}} {\cf2{}}{\cf15{InitPWM}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{void}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{// Turn on Timer {2}, set prescaler to {4}}}}\par\pard
+\cbpat1{{\cf2{    T{2}CON}} {\cf11{|=}} {\cf2{BIT{2}HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{    T{2}CON}} {\cf11{|=}} {\cf2{BIT{0}HI}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Want to run motors at {7}{5}{0}{0} Hz}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//Period must be {1}.{3}{3}{3}{3}e-{4} seconds}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//Oscillator running at {2}{0} MHz}}}\par\pard
+\cbpat1{{\cf2{    PR{2}}} {\cf11{=}} {\cf2{}}{\cf4{{1}{5}{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Set RC{5} as Output}}}\par\pard
+\cbpat1{{\cf2{    TRISC{5}}}  {\cf11{=}}  {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Single Output on P{1}A (RC{5})}}}\par\pard
+\cbpat1{{\cf2{    CCP{1}CON}} {\cf11{|= (}}{\cf2{BIT{3}HI}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{    CCP{1}CON}} {\cf11{|= (}}{\cf2{BIT{2}HI}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{    CCP{1}CON}} {\cf11{&= ~(}}{\cf2{BIT{1}HI}} {\cf11{|}} {\cf2{BIT{0}HI}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//Initialize PWM Duty Cycle to {7}{5}%}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//CCP{1}CON &= ~(BIT{5}HI | BIT{4}HI); //Two LSBs of Duty Cycle}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//CCPR{1}L = {0}b{0}{1}{1}{1}{1}{1}{0}{1}; //Eight MSBs of Duty Cycle}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf5{//SetDutyCycle({5}{6});}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SetDutyCycle({5}{0});}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf5{//SetDutyCycle({0});\\}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{    {\cf6{/*}}}\par\pard
+\cbpat1{{\cf6{    Define the character arrays for CCPR{1}L and CCP{1}CON that will be used to call SetDutyCycle}}}\par\pard
+\cbpat1{{\cf6{    in {1}% resolution. Each step in the {1}{0} bit register formed from {8} bits of the CCPR{1}L_ARRAY}}}\par\pard
+\cbpat1{{\cf6{    and {2} bits from the CCP{1}CON_ARRAY is equivalen to increasing the "high time" of the PWM}}}\par\pard
+\cbpat1{{\cf6{    to {6} ticks of the oscillator.}}}\par\pard
+\cbpat1{{\cf6{    */}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{    {\cf13{int}} {\cf2{i}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{do}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{            i}}{\cf11{++;}}}\par\pard
+\cbpat1{{\cf2{            CCP{1}CON_ARRAY}}{\cf11{[}}{\cf2{i}}{\cf11{] =}} {\cf2{}}{\cf4{{0}}}{\cf2{b{0}{0}{1}{0}{0}{0}{0}{0}}}{\cf11{;}} {\cf2{}}{\cf5{//Set bits <{5}:{4}> to insert into CCP{1}CON}}}\par\pard
+\cbpat1{{\cf2{            CCPR{1}L_ARRAY}}{\cf11{[}}{\cf2{i}}{\cf11{] =}} {\cf2{CCPR{1}L_ARRAY}}{\cf11{[}}{\cf2{i}}{\cf11{-}}{\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{] +}} {\cf2{}}{\cf4{{1}{2}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//Count CCPR{1}L to give {1}% resolution on DC}}}\par\pard
+\cbpat1{{\cf2{            i}}{\cf11{++;}}}\par\pard
+\cbpat1{{\cf2{            CCP{1}CON_ARRAY}}{\cf11{[}}{\cf2{i}}{\cf11{] =}} {\cf2{}}{\cf4{{0}}}{\cf2{b{0}{0}{0}{0}{0}{0}{0}{0}}}{\cf11{;}} {\cf2{}}{\cf5{//Set bits <{5}:{4}> to insert into CCP{1}CON}}}\par\pard
+\cbpat1{{\cf2{            CCPR{1}L_ARRAY}}{\cf11{[}}{\cf2{i}}{\cf11{] =}} {\cf2{CCPR{1}L_ARRAY}}{\cf11{[}}{\cf2{i}}{\cf11{-}}{\cf2{}}{\cf4{{1}}}{\cf2{}}{\cf11{] +}} {\cf2{}}{\cf4{{6}}}{\cf2{}}{\cf11{;}} {\cf2{}}{\cf5{//Add {1} to the {8} bit register}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{while}} {\cf2{}}{\cf11{(}}{\cf2{i}}{\cf11{<}}{\cf2{}}{\cf4{{2}{5}}}{\cf2{}}{\cf11{);}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf13{void}} {\cf2{}}{\cf15{SetDutyCycle}}{\cf2{}}{\cf11{(}}{\cf2{}}{\cf13{int}} {\cf2{Duty}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{if}} {\cf2{}}{\cf11{(}} {\cf2{Duty}} {\cf11{==}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{            CCP{1}CON}} {\cf11{|=}} {\cf2{CCP{1}CON_ARRAY}}{\cf11{[}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{            CCPR{1}L}} {\cf11{=}} {\cf2{CCPR{1}L_ARRAY}}{\cf11{[}}{\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{//CCP{1}CON &= ~({0}b{1}{1}{1}{1}{1}{1}{1}{1});}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{//CCPR{1}L = {0}b{0}{0}{0}{0}{0}{0}{0}{0};}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else if}} {\cf2{}}{\cf11{(}}{\cf2{Duty}} {\cf11{<}} {\cf2{}}{\cf4{{1}{0}{0}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{            CCP{1}CON}} {\cf11{|=}} {\cf2{CCP{1}CON_ARRAY}}{\cf11{[(}}{\cf2{Duty}}{\cf11{/}}{\cf2{}}{\cf4{{6}}}{\cf2{}}{\cf11{)];}}}\par\pard
+\cbpat1{{\cf2{            CCPR{1}L}} {\cf11{=}} {\cf2{CCPR{1}L_ARRAY}}{\cf11{[(}}{\cf2{Duty}}{\cf11{/}}{\cf2{}}{\cf4{{6}}}{\cf2{}}{\cf11{)];}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}    {\cf12{else if}} {\cf2{}}{\cf11{(}}{\cf2{Duty}} {\cf11{==}} {\cf2{}}{\cf4{{1}{0}{0}}}{\cf2{}}{\cf11{)}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\{}}}\par\pard
+\cbpat1{{\cf2{            CCP{1}CON}} {\cf11{|=}} {\cf2{CCP{1}CON_ARRAY}}{\cf11{[}}{\cf2{}}{\cf4{{2}{4}}}{\cf2{}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{            CCPR{1}L}} {\cf11{=}} {\cf2{CCPR{1}L_ARRAY}}{\cf11{[}}{\cf2{}}{\cf4{{2}{4}}}{\cf2{}}{\cf11{];}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{            {\cf5{//CCP{1}CON |= {0}b{0}{0}{1}{1}{0}{0}{0}{0};}}}\par\pard
+\cbpat1{{\cf2{}}            {\cf5{//CCPR{1}L = {0}b{1}{1}{1}{1}{1}{1}{1}{1};}}}\par\pard
+\cbpat1{{\cf2{}}        {\cf11{\}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf11{\}}}{\cf2{}}}\par\pard
+\cbpat1{}}

@@ -1,0 +1,225 @@
+{\rtf1\ansi\uc0 \deff1{\fonttbl{\f1\fmodern\fprq1\fcharset0 MS Shell Dlg 2;}}{\colortbl;\red255\green255\blue255;\red00\green00\blue00;\red255\green00\blue00;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue255;\red255\green34\blue255;\red255\green34\blue255;\red255\green00\blue00;\red00\green00\blue255;\red00\green00\blue00;\red178\green104\blue24;\red00\green255\blue00;\red178\green104\blue24;\red00\green00\blue00;}
+\paperw11905\paperh16837\margl1134\margr1134\margt1134\margb1134\sectd\plain\f1\fs20
+\pard \cbpat1{{\cf2{}}{\cf6{/****************************************************************************}}}\par\pard
+\cbpat1{{\cf6{ Module}}}\par\pard
+\cbpat1{{\cf6{     ES_Configure.h}}}\par\pard
+\cbpat1{{\cf6{ Description}}}\par\pard
+\cbpat1{{\cf6{     This file contains macro definitions that are edited by the user to}}}\par\pard
+\cbpat1{{\cf6{     adapt the Events and Services framework to a particular application.}}}\par\pard
+\cbpat1{{\cf6{ Notes}}}\par\pard
+\cbpat1{{\cf6{}}}\par\pard
+\cbpat1{{\cf6{ History}}}\par\pard
+\cbpat1{{\cf6{ When           Who     What/Why}}}\par\pard
+\cbpat1{{\cf6{ -------------- ---     --------}}}\par\pard
+\cbpat1{{\cf6{ {0}{1}/{1}{5}/{1}{2} {1}{0}:{0}{3} jec      started coding}}}\par\pard
+\cbpat1{{\cf6{*****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{}\par\pard
+\cbpat1{{\cf8{#ifndef CONFIGURE_H}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define CONFIGURE_H}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// The maximum number of services sets an upper bound on the number of}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// services that the framework will handle. Reasonable values are {8} and {1}{6}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// HOWEVER: at this time only a value of {8} is supported.}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define MAX_NUM_SERVICES {8}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// This macro determines that nuber of services that are *actually* used in}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// a particular application. It will vary in value from {1} to MAX_NUM_SERVICES}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define NUM_SERVICES {4}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for Service {0}, the lowest priority service}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// every Events and Services application must have a Service {0}. Further}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// services are added in numeric sequence ({1},{2},{3},...) with increasing}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// priorities}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the header file with the public fuction prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{0}_HEADER}} {\cf9{"CommandSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the Init function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{0}_INIT InitCommandSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the run function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{0}_RUN RunCommandSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// How big should this services Queue be?}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{0}_QUEUE_SIZE {5}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// The following sections are used to define the parameters for each of the}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// services. You only need to fill out as many as the number of services}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// defined by NUM_SERVICES}}}\par\pard
+\cbpat1{{\cf2{}}{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for Service {1}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_SERVICES > {1}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the header file with the public fuction prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{1}_HEADER}} {\cf9{"XBeeComSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the Init function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{1}_INIT InitXBeeComSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the run function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{1}_RUN RunXBeeComSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// How big should this services Queue be?}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{1}_QUEUE_SIZE {5}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for Service {2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_SERVICES > {2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the header file with the public fuction prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{2}_HEADER}} {\cf9{"SensingService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the Init function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{2}_INIT InitSensingService}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the run function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{2}_RUN RunSensingService}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// How big should this services Queue be?}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{2}_QUEUE_SIZE {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for Service {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_SERVICES > {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the header file with the public fuction prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{3}_HEADER}} {\cf9{"ButtonSM.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the Init function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{3}_INIT InitButtonSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the run function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{3}_RUN RunButtonSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// How big should this services Queue be?}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{3}_QUEUE_SIZE {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for Service {4}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_SERVICES > {4}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the header file with the public fuction prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{4}_HEADER}} {\cf9{"TestService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the Init function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{4}_INIT TestServiceInit}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the run function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{4}_RUN TestServiceRun}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// How big should this services Queue be?}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{4}_QUEUE_SIZE {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for Service {5}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_SERVICES > {5}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the header file with the public fuction prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{5}_HEADER}} {\cf9{"TestService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the Init function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{5}_INIT TestServiceInit}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the run function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{5}_RUN TestServiceRun}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// How big should this services Queue be?}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{5}_QUEUE_SIZE {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for Service {6}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_SERVICES > {6}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the header file with the public fuction prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{6}_HEADER}} {\cf9{"TestService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the Init function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{6}_INIT TestServiceInit}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the run function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{6}_RUN TestServiceRun}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// How big should this services Queue be?}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{6}_QUEUE_SIZE {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for Service {7}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_SERVICES > {7}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the header file with the public fuction prototypes}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{7}_HEADER}} {\cf9{"TestService.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the Init function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{7}_INIT TestServiceInit}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the name of the run function}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{7}_RUN TestServiceRun}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// How big should this services Queue be?}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SERV_{7}_QUEUE_SIZE {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// the name of the posting function that you want executed when a new}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// keystroke is detected.}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// The default initialization distributes keystrokes to all state machines}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define POST_KEY_FUNC ES_PostAll}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// Name/define the events of interest}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// Universal events occupy the lowest entries, followed by user-defined events}}}\par\pard
+\cbpat1{{\cf2{}}{\cf14{typedef}} {\cf2{}}{\cf13{enum}} {\cf2{}}{\cf11{\{}}  {\cf2{ES_NO_EVENT}} {\cf11{=}} {\cf2{}}{\cf4{{0}}}{\cf2{}}{\cf11{,}}}\par\pard
+\cbpat1{{\cf2{                ES_ERROR}}{\cf11{,}}  {\cf2{}}{\cf6{/* used to indicate an error from the service */}}{\cf2{}\par\pard
+\cbpat1{                ES_INIT}}{\cf11{,}}   {\cf2{}}{\cf6{/* used to transition from initial pseudo-state */}}{\cf2{}\par\pard
+\cbpat1{                ES_NEW_KEY}}{\cf11{,}} {\cf2{}}{\cf6{/* signals a new key received from terminal */}}{\cf2{}\par\pard
+\cbpat1{                ES_TIMEOUT}}{\cf11{,}} {\cf2{}}{\cf6{/* signals that the timer has expired */}}{\cf2{}}}\par\pard
+\cbpat1{                {\cf6{/* User-defined events start here */}}{\cf2{}\par\pard
+\cbpat1{                MISSION_ACTIVE}}{\cf11{,}}}\par\pard
+\cbpat1{{\cf2{                MISSION_END}}{\cf11{,}}}\par\pard
+\cbpat1{{\cf2{                NEW_MSG}}{\cf11{,}}}\par\pard
+\cbpat1{{\cf2{                RDRF_SET}}}\par\pard
+\cbpat1{             {\cf11{\}}} {\cf2{ES_EventTyp_t}} {\cf11{;}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for the Distribution lists. Each definition}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// should be a comma seperated list of post functions to indicate which}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// services are on that distribution list.}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define NUM_DIST_LISTS {0}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_DIST_LISTS > {0}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DIST_LIST{0} PostCommandSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_DIST_LISTS > {1}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DIST_LIST{1} PostTemplateFSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_DIST_LISTS > {2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DIST_LIST{2} PostTemplateFSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_DIST_LISTS > {3}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DIST_LIST{3} PostTemplateFSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_DIST_LISTS > {4}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DIST_LIST{4} PostTemplateFSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_DIST_LISTS > {5}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DIST_LIST{5} PostTemplateFSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_DIST_LISTS > {6}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DIST_LIST{6} PostTemplateFSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#if NUM_DIST_LISTS > {7}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DIST_LIST{7} PostTemplateFSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#endif}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// This are the name of the Event checking funcion header file.}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define EVENT_CHECK_HEADER}} {\cf9{"EventCheckers.h"}}{\cf8{}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// This is the list of event checking functions}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define EVENT_CHECK_LIST Check{4}RDRF, Check{4}ActiveMission}}{\cf5{//, Check{4}PodChange//,Check{4}EndMission}}}\par\pard
+\cbpat1{{\cf8{}}{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// These are the definitions for the post functions to be executed when the}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// correspnding timer expires. All {8} must be defined. If you are not using}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// a timers, then you can use TIMER_UNUSED}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER_UNUSED ((pPostFunc){0})}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER{0}_RESP_FUNC PostCommandSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER{1}_RESP_FUNC PostCommandSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER{2}_RESP_FUNC PostSensingService}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER{3}_RESP_FUNC PostButtonSM}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER{4}_RESP_FUNC TIMER_UNUSED}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER{5}_RESP_FUNC TIMER_UNUSED}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER{6}_RESP_FUNC TIMER_UNUSED}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define TIMER{7}_RESP_FUNC TIMER_UNUSED}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf6{/****************************************************************************/}}{\cf2{}}}\par\pard
+\cbpat1{{\cf5{// Give the timer numbers symbolc names to make it easier to move them}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// to different timers if the need arises. Keep these definitons close to the}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// definitions for the response functions to make it easier to check that}}}\par\pard
+\cbpat1{{\cf2{}}{\cf5{// the timer number matches where the timer event will be routed}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#define COMMAND_TIMER   {0}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define XBEE_TIMER      {1}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define SENSE_TIMER     {2}}}}\par\pard
+\cbpat1{{\cf2{}}{\cf8{#define DEBOUNCE_TIMER  {3}}}}\par\pard
+\cbpat1{{\cf2{}}}\par\pard
+\cbpat1{{\cf8{#endif}} {\cf6{/* CONFIGURE_H */}}{\cf8{}}{\cf2{}}}\par\pard
+\cbpat1{}}

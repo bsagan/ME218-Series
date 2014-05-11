@@ -1,0 +1,275 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf360
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red0\green102\blue51;\red83\green116\blue176;\red102\green51\blue0;
+\red244\green140\blue35;\red51\green0\blue102;\red85\green85\blue85;\red50\green186\blue6;\red209\green28\blue237;
+\red255\green48\blue48;\red24\green97\blue167;\red166\green23\blue97;}
+\paperw11900\paperh16840\margl1134\margr1134\margb1134\margt1134\vieww11900\viewh16840\viewkind1\viewscale115
+\deftab720
+\pard\pardeftab720\ri-5
+
+\f0\fs20 \cf2 /****************************************************************************\cf0 \
+\cf2  Module\cf0 \
+\cf2    ArtilleryFSM.c\cf0 \
+\
+\cf2  Revision\cf0 \
+\cf2    1.0.1\cf0 \
+\
+\cf2  Description\cf0 \
+\cf2    This is a template file for implementing flat state machines under the\cf0 \
+\cf2    Gen2 Events and Services Framework.\cf0 \
+\
+\cf2  Notes\cf0 \
+\
+\cf2  History\cf0 \
+\cf2  When           Who     What/Why\cf0 \
+\cf2  -------------- ---     --------\cf0 \
+\cf2  02/21/13       DYL      began editing for FAC_FSM\cf0 \
+\cf2 ****************************************************************************/\cf0 \
+\cf2 /*----------------------------- Include Files -----------------------------*/\cf0 \
+\cf2 /* include header files for this state machine as well as any machines at the\cf0 \
+\cf2    next lower level in the hierarchy that are sub-machines to this machine*/\cf0 \
+\
+\pard\pardeftab720\ri-5
+\cf3 #include <stdio.h>\cf0 \
+\cf3 #include <stdlib.h>\cf0 \
+\cf3 #include <mc9s12e128.h>\cf0 \
+\cf3 #include <S12e128bits.h>\cf0 \
+\cf3 #include <Bin_Const.h>\cf0 \
+\cf3 #include <termio.h>\cf0 \
+\cf3 #include <hidef.h>\cf0 \
+\cf3 #include\cf0  \cf4 "S12eVec.h"\cf0 \
+\
+\cf3 #include\cf0  \cf4 "E128_PWM.h"\cf0          \cf2 //has all prescale definitions\cf0 \
+\cf3 #include\cf0  \cf4 "E128_SPI.h"\cf0 \
+\cf3 #include\cf0  \cf4 "E128_Servo.h"\cf0 \
+\cf3 #include\cf0  \cf4 "FAC_FSM.h"\cf0 \
+\cf3 #include\cf0  \cf4 "NavigationFSM.h"\cf0 \
+\cf3 #include\cf0  \cf4 "AlignPPService.h"\cf0 \
+\cf3 #include\cf0  \cf4 "DriveTrainService.h"\cf0 \
+\cf3 #include\cf0  \cf4 "ArtilleryFSM.h"\cf0 \
+\cf3 #include\cf0  \cf4 "StrategyFSM.h"\cf0 \
+\
+\
+\pard\pardeftab720\ri-5
+\cf2 /*----------------------------- Module Defines ----------------------------*/\cf0 \
+\
+\
+\cf2 /*---------------------------- Module Functions ---------------------------*/\cf0 \
+\cf2 /* prototypes for private functions for this service.They should be functions\cf0 \
+\cf2    relevant to the behavior of this service\cf0 \
+\cf2 */\cf0 \
+\
+\cf2 /*---------------------------- Module Variables ---------------------------*/\cf0 \
+\cf2 // everybody needs a state variable, you may need others as well.\cf0 \
+\cf2 // type of state variable should match htat of enum in header file\cf0 \
+\pard\pardeftab720\ri-5
+\cf5 static\cf0  \cf6 ArtilleryState_t CurrentState\cf7 ;\cf0 \
+\cf5 static unsigned int\cf0  \cf6 NumBalls\cf0  \cf7 =\cf0  \cf8 5\cf7 ;\cf0  \cf2 //assume we start with 5 balls in hopper\cf0 \
+\cf5 static char\cf0  \cf6 ShootingDistance\cf7 ;\cf0 \
+\cf5 static\cf0  \cf6 boolean ReceivedFireCommand\cf0  \cf7 =\cf0  \cf6 False\cf7 ;\cf0 \
+\
+\
+\pard\pardeftab720\ri-5
+\cf2 // with the introduction of Gen2, we need a module level Priority variable\cf0 \
+\pard\pardeftab720\ri-5
+\cf5 static uint8_t\cf0  \cf6 MyPriority\cf7 ;\cf0 \
+\
+\pard\pardeftab720\ri-5
+\cf2 /*------------------------------ Module Code ------------------------------*/\cf0 \
+\cf2 /****************************************************************************\cf0 \
+\cf2  Function\cf0 \
+\cf2      InitArtilleryFSM\cf0 \
+\
+\cf2  Parameters\cf0 \
+\cf2      uint8_t : the priorty of this service\cf0 \
+\
+\cf2  Returns\cf0 \
+\cf2      boolean, False if error in initialization, True otherwise\cf0 \
+\
+\cf2  Description\cf0 \
+\cf2      Saves away the priority, sets up the initial transition and does any\cf0 \
+\cf2      other required initialization for this state machine\cf0 \
+\cf2  Notes\cf0 \
+\
+\cf2  Author\cf0 \
+\cf2      Debbie Li and Ben Sagan 2/20/2013\cf0 \
+\cf2 ****************************************************************************/\cf6 \
+boolean\cf0  \cf9 InitArtilleryFSM\cf0  \cf7 (\cf0  \cf5 uint8_t\cf0  \cf6 Priority\cf0  \cf7 )\cf0 \
+\pard\pardeftab720\ri-5
+\cf7 \{\cf0 \
+\pard\pardeftab720\ri-5
+\cf6     ES_Event ThisEvent\cf7 ;\cf0 \
+\cf6 \
+    MyPriority\cf0  \cf7 =\cf0  \cf6 Priority\cf7 ;\cf0 \
+    \cf2 //servo hardware initialized in BotMain\cf0 \
+\
+    \cf2 // put us into the Off\cf0 \
+\cf6     CurrentState\cf0  \cf7 =\cf0  \cf6 Off\cf7 ;\cf0 \
+\
+    \cf2 // post the initial transition event\cf0 \
+\cf6     ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 =\cf0  \cf6 ES_INIT\cf7 ;\cf0 \
+    \cf10 if\cf0  \cf7 (\cf9 ES_PostToService\cf7 (\cf0  \cf6 MyPriority\cf7 ,\cf0  \cf6 ThisEvent\cf7 ) ==\cf0  \cf6 True\cf7 )\cf0 \
+        \cf7 \{\cf0 \
+            \cf10 return\cf0  \cf6 True\cf7 ;\cf0 \
+        \cf7 \}\cf0 \
+    \cf10 else\cf0 \
+        \cf7 \{\cf0 \
+            \cf10 return\cf0  \cf6 False\cf7 ;\cf0 \
+        \cf7 \}\cf0 \
+\pard\pardeftab720\ri-5
+\cf7 \}\cf0 \
+\
+\pard\pardeftab720\ri-5
+\cf2 /****************************************************************************\cf0 \
+\cf2  Function\cf0 \
+\cf2      PostArtilleryFSM\cf0 \
+\
+\cf2  Parameters\cf0 \
+\cf2      EF_Event ThisEvent , the event to post to the queue\cf0 \
+\
+\cf2  Returns\cf0 \
+\cf2      boolean False if the Enqueue operation failed, True otherwise\cf0 \
+\
+\cf2  Description\cf0 \
+\cf2      Posts an event to this state machine's queue\cf0 \
+\cf2  Notes\cf0 \
+\
+\cf2  Author\cf0 \
+\cf2     Debbie Li and Ben Sagan 2/20/2013\cf0 \
+\
+\cf2 ****************************************************************************/\cf6 \
+boolean\cf0  \cf9 PostArtilleryFSM\cf7 (\cf0  \cf6 ES_Event ThisEvent\cf0  \cf7 )\cf0 \
+\pard\pardeftab720\ri-5
+\cf7 \{\cf0 \
+    \cf10 return\cf0  \cf9 ES_PostToService\cf7 (\cf0  \cf6 MyPriority\cf7 ,\cf0  \cf6 ThisEvent\cf7 );\cf0 \
+\cf7 \}\cf0 \
+\
+\pard\pardeftab720\ri-5
+\cf2 /****************************************************************************\cf0 \
+\cf2  Function\cf0 \
+\cf2     RunArtilleryFSM\cf0 \
+\
+\cf2  Parameters\cf0 \
+\cf2    ES_Event : the event to process\cf0 \
+\
+\cf2  Returns\cf0 \
+\cf2    ES_Event, ES_NO_EVENT if no error ES_ERROR otherwise\cf0 \
+\
+\cf2  Description\cf0 \
+\cf2    add your description here\cf0 \
+\cf2  Notes\cf0 \
+\cf2    uses nested switch/case to implement the machine.\cf0 \
+\cf2  Author\cf0 \
+\cf2    Debbie Li and Ben Sagan, 2/20/2013\cf0 \
+\cf2 ****************************************************************************/\cf6 \
+ES_Event\cf0  \cf9 RunArtilleryFSM\cf7 (\cf0  \cf6 ES_Event ThisEvent\cf0  \cf7 )\cf0 \
+\pard\pardeftab720\ri-5
+\cf7 \{\cf0 \
+\pard\pardeftab720\ri-5
+\cf6     ES_Event ReturnEvent\cf7 ;\cf0 \
+\cf6     ReturnEvent\cf7 .\cf6 EventType\cf0  \cf7 =\cf0  \cf6 ES_NO_EVENT\cf7 ;\cf0  \cf2 // assume no errors\cf0 \
+\
+    \cf2 /**************************************************************************\cf0 \
+\
+\pard\pardeftab720\ri-5
+\cf2                             BEGIN STATE MACHINE CODE\cf0 \
+\
+\cf2     ***************************************************************************/\cf0 \
+\
+    \cf10 switch\cf0  \cf7 (\cf0  \cf6 CurrentState\cf0  \cf7 )\cf0 \
+        \cf7 \{\cf0 \
+\
+        \cf10 case\cf0  \cf7 (\cf0  \cf6 Off\cf0  \cf7 ) :\cf0 \
+            \cf10 if\cf0  \cf7 (\cf6 ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 ==\cf0  \cf6 FIREUP\cf7 )\cf2 //StrategyHSM tells you to start up flywheel\cf0 \
+                \cf7 \{\cf0 \
+                    \cf2 //puts("getting ready to shoot\\r\\n");\cf0 \
+\pard\pardeftab720\ri-5
+\cf6                     ShootingDistance\cf0  \cf7 =\cf0  \cf6 ThisEvent\cf7 .\cf6 EventParam\cf7 ;\cf0 \
+                    \cf2 //turn on flywheel motor\cf0 \
+                    \cf9 RampUpFlywheel\cf7 (\cf6 ShootingDistance\cf7 );\cf0 \
+\
+                    \cf10 if\cf0  \cf7 (\cf6 ShootingDistance\cf0  \cf7 ==\cf0  \cf6 LEVIATHAN\cf7 )\cf0 \
+                        \cf7 \{\cf0 \
+                            \cf9 ES_Timer_InitTimer\cf7 (\cf6 ARTILLERY_TIMER\cf7 ,\cf0  \cf6 FLYWHEEL_TIME\cf7 );\cf0 \
+                        \cf7 \}\cf0 \
+                    \cf10 else if\cf0  \cf7 (\cf6 ShootingDistance\cf0  \cf7 ==\cf0  \cf6 SHOOT_PP\cf7 )\cf0 \
+                        \cf7 \{\cf0 \
+                            \cf9 ES_Timer_InitTimer\cf7 (\cf6 ARTILLERY_TIMER\cf7 ,\cf0  \cf6 PP_TIME\cf7 );\cf0 \
+                        \cf7 \}\cf0 \
+                    \cf10 else\cf0 \
+                        \cf7 \{\cf0 \
+                            \cf9 ES_Timer_InitTimer\cf7 (\cf6 ARTILLERY_TIMER\cf7 ,\cf0  \cf6 FLYWHEEL_TIME\cf7 );\cf0 \
+                        \cf7 \}\cf0 \
+\cf6                     CurrentState\cf0  \cf7 =\cf0  \cf6 RampingUp\cf7 ;\cf0 \
+                \cf7 \}\cf0 \
+            \cf10 break\cf7 ;\cf0  \cf2 // break Off\cf0 \
+\
+        \cf10 case\cf0  \cf7 (\cf0  \cf6 RampingUp\cf0  \cf7 ) :\cf0 \
+            \cf10 if\cf0  \cf7 ((\cf6 ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 ==\cf0  \cf6 ES_TIMEOUT\cf7 ) && (\cf6 ThisEvent\cf7 .\cf6 EventParam\cf0  \cf7 ==\cf0  \cf6 ARTILLERY_TIMER\cf7 ))\cf0 \
+                \cf2 //flywheel is up to speed... it takes ~2 second to ramp up from our "idle" state\cf0 \
+\
+                    \cf2 //Set Current state to allow us to fire when necessary\cf0 \
+\cf6                     CurrentState\cf0  \cf7 =\cf0  \cf6 WaitingToShoot\cf7 ;\cf0 \
+                \cf7 \}\cf0 \
+\
+            \cf10 if\cf0  \cf7 (\cf0  \cf6 ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 ==\cf0  \cf6 FIRE\cf0  \cf7 )\cf0 \
+                \cf7 \{\cf0 \
+                    \cf9 puts\cf7 (\cf11 "Received FIRE Command before ramp up timeout occured\cf0  \cf12 \\r\\n\cf11 "\cf7 );\cf0 \
+                    \cf2 //ReceivedFireCommand = True;\cf0 \
+\cf6                     CurrentState\cf0  \cf7 =\cf0  \cf6 WaitingToShoot\cf7 ;\cf0 \
+                \cf7 \}\cf0 \
+\
+\
+            \cf10 break\cf7 ;\cf0  \cf2 //break RampingUp\cf0 \
+\
+        \cf10 case\cf0  \cf7 (\cf0  \cf6 WaitingToShoot\cf0  \cf7 ) :\cf0 \
+            \cf10 if\cf0  \cf7 (\cf6 ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 ==\cf0  \cf6 FIRE\cf7 )\cf0 \
+                \cf2 //get a fire event and Strategy is in the right state to shoot. Note cannon is already up to speed to be in this state\cf0 \
+                \cf7 \{\cf0 \
+                    \cf2 // Got here after the Flywheel was brought up to speed\cf0 \
+                    \cf9 ArtilleryServoShoot\cf7 ();\cf0                     \cf2 //"opens" servo to release ball\cf0 \
+                    \cf9 ES_Timer_InitTimer\cf7 (\cf6 ARTILLERY_TIMER\cf7 ,\cf0  \cf6 DEPLOY_TIME\cf7 );\cf0      \cf2 //BALL_DEPLOY timer to determine when ball deployed, then turn off flywheel\cf0 \
+                    \cf2 //puts("got fire command in waiting2shoot\\r\\n");\cf0 \
+\cf6                     CurrentState\cf0  \cf7 =\cf0  \cf6 Shooting\cf7 ;\cf0 \
+                \cf7 \}\cf0 \
+\
+            \cf10 if\cf0  \cf7 ((\cf6 ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 ==\cf0  \cf6 ES_TIMEOUT\cf7 ) && (\cf6 ThisEvent\cf7 .\cf6 EventParam\cf0  \cf7 ==\cf0  \cf6 ARTILLERY_TIMER\cf7 ))\cf0 \
+                \cf7 \{\cf0 \
+                    \cf2 //Flywheel has completed spinning up, we can now fire.\cf0 \
+                    \cf9 ArtilleryServoShoot\cf7 ();\cf0                     \cf2 //"opens" servo to release ball\cf0 \
+                    \cf9 ES_Timer_InitTimer\cf7 (\cf6 ARTILLERY_TIMER\cf7 ,\cf0  \cf6 DEPLOY_TIME\cf7 );\cf0      \cf2 //BALL_DEPLOY timer to determine when ball deployed, then turn off flywheel\cf0 \
+                    \cf9 puts\cf7 (\cf11 "got fire command in waiting2shoot\cf12 \\r\\n\cf11 "\cf7 );\cf0 \
+\cf6                     CurrentState\cf0  \cf7 =\cf0  \cf6 Shooting\cf7 ;\cf0 \
+                \cf7 \}\cf0 \
+\
+            \cf10 if\cf0  \cf7 (\cf6 ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 ==\cf0  \cf6 NO_SHOT\cf7 )\cf0 \
+                \cf7 \{\cf0 \
+                    \cf9 RampDownFlywheel\cf7 ();\cf0 \
+\cf6 \
+                    CurrentState\cf0  \cf7 =\cf0  \cf6 Off\cf7 ;\cf0 \
+                \cf7 \}\cf0 \
+            \cf10 break\cf7 ;\cf0 \
+\
+        \cf10 case\cf0  \cf7 (\cf0  \cf6 Shooting\cf0  \cf7 ) :\cf0 \
+            \cf10 if\cf0  \cf7 ((\cf6 ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 ==\cf0  \cf6 ES_TIMEOUT\cf7 ) && (\cf6 ThisEvent\cf7 .\cf6 EventParam\cf0  \cf7 ==\cf0  \cf6 ARTILLERY_TIMER\cf7 ))\cf0 \
+                \cf2 //ball deployed\cf0 \
+                \cf7 \{\cf0 \
+                    \cf9 ArtilleryServoLoad\cf7 ();\cf0 \
+                    \cf9 puts\cf7 (\cf11 "ball deployed\cf12 \\r\\n\cf11 "\cf7 );\cf0 \
+                    \cf2 //turn off flywheel motors\cf0 \
+                    \cf9 RampDownFlywheel\cf7 ();\cf0 \
+                    \cf2 //ES_Timer_InitTimer(ARTILLERY_TIMER, SERVO_TIME);    //SERVO_TIMER to time when to close servo "door" to stop next ball\cf0 \
+                    \cf2 //tell Strategy that we have fired a ball\cf0 \
+\cf6                     ThisEvent\cf7 .\cf6 EventType\cf0  \cf7 =\cf0  \cf6 BALL_DEPLOYED\cf7 ;\cf0 \
+\cf6                     ThisEvent\cf7 .\cf6 EventParam\cf0  \cf7 =\cf0  \cf8 0\cf7 ;\cf0 \
+                    \cf9 PostStrategyFSM\cf7 (\cf6 ThisEvent\cf7 );\cf0 \
+\cf6 \
+                    CurrentState\cf0  \cf7 =\cf0  \cf6 Off\cf7 ;\cf0 \
+\
+                \cf7 \}\cf0 \
+            \cf10 break\cf7 ;\cf0  \cf2 //break Shooting\cf0 \
+        \cf7 \}\cf0  \cf2 // End switch( CurrentState )\cf0 \
+    \cf10 return\cf0  \cf6 ReturnEvent\cf7 ;\cf0 \
+\pard\pardeftab720\ri-5
+\cf7 \}\cf0 \
+}

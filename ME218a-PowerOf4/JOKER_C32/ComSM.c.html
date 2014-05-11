@@ -1,0 +1,487 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ComSM.c</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><a name="ComSM.c_1"></a><span class="hl lin">    1 </span><span class="hl com">/****************************************************************************</span>
+<a name="ComSM.c_2"></a><span class="hl lin">    2 </span><span class="hl com"> Module</span>
+<a name="ComSM.c_3"></a><span class="hl lin">    3 </span><span class="hl com">   ComSM.c</span>
+<a name="ComSM.c_4"></a><span class="hl lin">    4 </span><span class="hl com"></span>
+<a name="ComSM.c_5"></a><span class="hl lin">    5 </span><span class="hl com"> Revision</span>
+<a name="ComSM.c_6"></a><span class="hl lin">    6 </span><span class="hl com">   1.0.1</span>
+<a name="ComSM.c_7"></a><span class="hl lin">    7 </span><span class="hl com"></span>
+<a name="ComSM.c_8"></a><span class="hl lin">    8 </span><span class="hl com"> Description</span>
+<a name="ComSM.c_9"></a><span class="hl lin">    9 </span><span class="hl com">   This is the module used to communicate messages between the two C32s.</span>
+<a name="ComSM.c_10"></a><span class="hl lin">   10 </span><span class="hl com"></span>
+<a name="ComSM.c_11"></a><span class="hl lin">   11 </span><span class="hl com"> Notes</span>
+<a name="ComSM.c_12"></a><span class="hl lin">   12 </span><span class="hl com"></span>
+<a name="ComSM.c_13"></a><span class="hl lin">   13 </span><span class="hl com"> ****************************************************************************/</span>
+<a name="ComSM.c_14"></a><span class="hl lin">   14 </span><span class="hl com">/*----------------------------- Include Files -----------------------------*/</span>
+<a name="ComSM.c_15"></a><span class="hl lin">   15 </span><span class="hl com">/* include header files for this state machine as well as any machines at the</span>
+<a name="ComSM.c_16"></a><span class="hl lin">   16 </span><span class="hl com">   next lower level in the hierarchy that are sub-machines to this machine</span>
+<a name="ComSM.c_17"></a><span class="hl lin">   17 </span><span class="hl com">*/</span>
+<a name="ComSM.c_18"></a><span class="hl lin">   18 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Configure.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_19"></a><span class="hl lin">   19 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Framework.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_20"></a><span class="hl lin">   20 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_General.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_21"></a><span class="hl lin">   21 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Events.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_22"></a><span class="hl lin">   22 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_PostList.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_23"></a><span class="hl lin">   23 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;EventCheckers.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_24"></a><span class="hl lin">   24 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ES_Timers.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_25"></a><span class="hl lin">   25 </span><span class="hl ppc">#include &lt;ME218_C32.h&gt;</span>
+<a name="ComSM.c_26"></a><span class="hl lin">   26 </span><span class="hl ppc">#include &lt;stdio.h&gt;</span>
+<a name="ComSM.c_27"></a><span class="hl lin">   27 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ADS12.H&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_28"></a><span class="hl lin">   28 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;PWMS12.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_29"></a><span class="hl lin">   29 </span>
+<a name="ComSM.c_30"></a><span class="hl lin">   30 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;ComSM.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_31"></a><span class="hl lin">   31 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;GameplaySM.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_32"></a><span class="hl lin">   32 </span><span class="hl ppc">#include</span> <span class="hl pps">&quot;TimerSM.h&quot;</span><span class="hl ppc"></span>
+<a name="ComSM.c_33"></a><span class="hl lin">   33 </span>
+<a name="ComSM.c_34"></a><span class="hl lin">   34 </span><span class="hl com">/*----------------------------- Module Defines ----------------------------*/</span>
+<a name="ComSM.c_35"></a><span class="hl lin">   35 </span><span class="hl ppc">#define TIMERVAL 20</span> <span class="hl slc">// millisecond timer setting for waiting for response</span>
+<a name="ComSM.c_36"></a><span class="hl lin">   36 </span><span class="hl ppc"></span>
+<a name="ComSM.c_37"></a><span class="hl lin">   37 </span>
+<a name="ComSM.c_38"></a><span class="hl lin">   38 </span><span class="hl com">/*---------------------------- Module Functions ---------------------------*/</span>
+<a name="ComSM.c_39"></a><span class="hl lin">   39 </span><span class="hl com">/* prototypes for private functions for this machine.They should be functions</span>
+<a name="ComSM.c_40"></a><span class="hl lin">   40 </span><span class="hl com">   relevant to the behavior of this state machine</span>
+<a name="ComSM.c_41"></a><span class="hl lin">   41 </span><span class="hl com">*/</span>
+<a name="ComSM.c_42"></a><span class="hl lin">   42 </span><span class="hl kwb">static</span> ES_EventTyp_t <span class="hl kwd">InterpretMsg</span><span class="hl opt">(</span><span class="hl kwb">unsigned char</span> Message<span class="hl opt">);</span>
+<a name="ComSM.c_43"></a><span class="hl lin">   43 </span><span class="hl slc">//static unsigned int GenerateNum(void);  //test file</span>
+<a name="ComSM.c_44"></a><span class="hl lin">   44 </span>
+<a name="ComSM.c_45"></a><span class="hl lin">   45 </span><span class="hl com">/*---------------------------- Module Variables ---------------------------*/</span>
+<a name="ComSM.c_46"></a><span class="hl lin">   46 </span><span class="hl slc">// everybody needs a state variable, you may need others as well.</span>
+<a name="ComSM.c_47"></a><span class="hl lin">   47 </span><span class="hl slc">// type of state variable should match htat of enum in header file</span>
+<a name="ComSM.c_48"></a><span class="hl lin">   48 </span><span class="hl kwb">static</span> ComState_t CurrentState<span class="hl opt">;</span>
+<a name="ComSM.c_49"></a><span class="hl lin">   49 </span><span class="hl kwb">static unsigned char</span> Data<span class="hl opt">[</span><span class="hl num">3</span><span class="hl opt">] = {</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">};</span>
+<a name="ComSM.c_50"></a><span class="hl lin">   50 </span><span class="hl kwb">static unsigned char</span> Message<span class="hl opt">;</span>
+<a name="ComSM.c_51"></a><span class="hl lin">   51 </span><span class="hl kwb">static unsigned char</span> NewData<span class="hl opt">;</span> <span class="hl slc">//data that is saved during Wait2Receive</span>
+<a name="ComSM.c_52"></a><span class="hl lin">   52 </span>
+<a name="ComSM.c_53"></a><span class="hl lin">   53 </span><span class="hl slc">// with the introduction of Gen2, we need a module level Priority var as well</span>
+<a name="ComSM.c_54"></a><span class="hl lin">   54 </span><span class="hl kwb">static uint8_t</span> MyPriority<span class="hl opt">;</span>
+<a name="ComSM.c_55"></a><span class="hl lin">   55 </span>
+<a name="ComSM.c_56"></a><span class="hl lin">   56 </span>
+<a name="ComSM.c_57"></a><span class="hl lin">   57 </span><span class="hl com">/*------------------------------ Module Code ------------------------------*/</span>
+<a name="ComSM.c_58"></a><span class="hl lin">   58 </span><span class="hl com">/****************************************************************************</span>
+<a name="ComSM.c_59"></a><span class="hl lin">   59 </span><span class="hl com"> Function</span>
+<a name="ComSM.c_60"></a><span class="hl lin">   60 </span><span class="hl com">     InitComSM</span>
+<a name="ComSM.c_61"></a><span class="hl lin">   61 </span><span class="hl com"></span>
+<a name="ComSM.c_62"></a><span class="hl lin">   62 </span><span class="hl com"> Parameters</span>
+<a name="ComSM.c_63"></a><span class="hl lin">   63 </span><span class="hl com">     uint8_t : the priorty of this service</span>
+<a name="ComSM.c_64"></a><span class="hl lin">   64 </span><span class="hl com"></span>
+<a name="ComSM.c_65"></a><span class="hl lin">   65 </span><span class="hl com"> Returns</span>
+<a name="ComSM.c_66"></a><span class="hl lin">   66 </span><span class="hl com">     boolean, False if error in initialization, True otherwise</span>
+<a name="ComSM.c_67"></a><span class="hl lin">   67 </span><span class="hl com"></span>
+<a name="ComSM.c_68"></a><span class="hl lin">   68 </span><span class="hl com"> Description</span>
+<a name="ComSM.c_69"></a><span class="hl lin">   69 </span><span class="hl com">     Saves away the priority, sets up the initial transition and does any</span>
+<a name="ComSM.c_70"></a><span class="hl lin">   70 </span><span class="hl com">     other required initialization for this state machine</span>
+<a name="ComSM.c_71"></a><span class="hl lin">   71 </span><span class="hl com"> Notes</span>
+<a name="ComSM.c_72"></a><span class="hl lin">   72 </span><span class="hl com"></span>
+<a name="ComSM.c_73"></a><span class="hl lin">   73 </span><span class="hl com"> Author</span>
+<a name="ComSM.c_74"></a><span class="hl lin">   74 </span><span class="hl com">     J. Edward Carryer, 10/23/11, 18:55</span>
+<a name="ComSM.c_75"></a><span class="hl lin">   75 </span><span class="hl com">****************************************************************************/</span>
+<a name="ComSM.c_76"></a><span class="hl lin">   76 </span>boolean <span class="hl kwd">InitComSM</span> <span class="hl opt">(</span> <span class="hl kwb">uint8_t</span> Priority <span class="hl opt">)</span>
+<a name="ComSM.c_77"></a><span class="hl lin">   77 </span><span class="hl opt">{</span>
+<a name="ComSM.c_78"></a><span class="hl lin">   78 </span>    ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="ComSM.c_79"></a><span class="hl lin">   79 </span>    MyPriority <span class="hl opt">=</span> Priority<span class="hl opt">;</span>
+<a name="ComSM.c_80"></a><span class="hl lin">   80 </span>    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;ComSM I AM C32-1</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="ComSM.c_81"></a><span class="hl lin">   81 </span>
+<a name="ComSM.c_82"></a><span class="hl lin">   82 </span>    <span class="hl slc">// put us into stationary motor state</span>
+<a name="ComSM.c_83"></a><span class="hl lin">   83 </span>    CurrentState <span class="hl opt">=</span> Idle<span class="hl opt">;</span>
+<a name="ComSM.c_84"></a><span class="hl lin">   84 </span>
+<a name="ComSM.c_85"></a><span class="hl lin">   85 </span><span class="hl slc">//set everything low before setting as inputs</span>
+<a name="ComSM.c_86"></a><span class="hl lin">   86 </span>    DDRT <span class="hl opt">|=</span> <span class="hl num">0xF8</span><span class="hl opt">;</span> <span class="hl slc">//sets ports 1-5 as outputs</span>
+<a name="ComSM.c_87"></a><span class="hl lin">   87 </span><span class="hl slc">//write ports to 0</span>
+<a name="ComSM.c_88"></a><span class="hl lin">   88 </span>    STROBE <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_89"></a><span class="hl lin">   89 </span>    D0 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_90"></a><span class="hl lin">   90 </span>    D1 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_91"></a><span class="hl lin">   91 </span>    D2 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_92"></a><span class="hl lin">   92 </span>    ACKNOWLEDGE <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_93"></a><span class="hl lin">   93 </span><span class="hl slc">// set ports as inputs</span>
+<a name="ComSM.c_94"></a><span class="hl lin">   94 </span>    STROBE_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_95"></a><span class="hl lin">   95 </span>    D0_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_96"></a><span class="hl lin">   96 </span>    D1_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_97"></a><span class="hl lin">   97 </span>    D2_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_98"></a><span class="hl lin">   98 </span>    ACK_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_99"></a><span class="hl lin">   99 </span><span class="hl slc">//printf(&quot;initialization complete \r\n&quot;);</span>
+<a name="ComSM.c_100"></a><span class="hl lin">  100 </span>
+<a name="ComSM.c_101"></a><span class="hl lin">  101 </span>    <span class="hl slc">// post the initial transition event</span>
+<a name="ComSM.c_102"></a><span class="hl lin">  102 </span>    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> ES_INIT<span class="hl opt">;</span>    <span class="hl slc">//MAKE THIS ES_INIT FOR THE OTHER C32!!!!!!</span>
+<a name="ComSM.c_103"></a><span class="hl lin">  103 </span>    <span class="hl slc">//isEvent.EventParam = GenerateNum(); //COMMENT THIS LINE OUT FOR THE OTHER C32</span>
+<a name="ComSM.c_104"></a><span class="hl lin">  104 </span>
+<a name="ComSM.c_105"></a><span class="hl lin">  105 </span>    <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwd">ES_PostToService</span><span class="hl opt">(</span> MyPriority<span class="hl opt">,</span> ThisEvent<span class="hl opt">) ==</span> True<span class="hl opt">)</span>
+<a name="ComSM.c_106"></a><span class="hl lin">  106 </span>        <span class="hl opt">{</span>
+<a name="ComSM.c_107"></a><span class="hl lin">  107 </span>            <span class="hl kwa">return</span> True<span class="hl opt">;</span>
+<a name="ComSM.c_108"></a><span class="hl lin">  108 </span>        <span class="hl opt">}</span>
+<a name="ComSM.c_109"></a><span class="hl lin">  109 </span>    <span class="hl kwa">else</span>
+<a name="ComSM.c_110"></a><span class="hl lin">  110 </span>        <span class="hl opt">{</span>
+<a name="ComSM.c_111"></a><span class="hl lin">  111 </span>            <span class="hl kwa">return</span> False<span class="hl opt">;</span>
+<a name="ComSM.c_112"></a><span class="hl lin">  112 </span>        <span class="hl opt">}</span>
+<a name="ComSM.c_113"></a><span class="hl lin">  113 </span><span class="hl opt">}</span>
+<a name="ComSM.c_114"></a><span class="hl lin">  114 </span>
+<a name="ComSM.c_115"></a><span class="hl lin">  115 </span><span class="hl com">/****************************************************************************</span>
+<a name="ComSM.c_116"></a><span class="hl lin">  116 </span><span class="hl com"> Function</span>
+<a name="ComSM.c_117"></a><span class="hl lin">  117 </span><span class="hl com">     PostTemplateFSM</span>
+<a name="ComSM.c_118"></a><span class="hl lin">  118 </span><span class="hl com"></span>
+<a name="ComSM.c_119"></a><span class="hl lin">  119 </span><span class="hl com"> Parameters</span>
+<a name="ComSM.c_120"></a><span class="hl lin">  120 </span><span class="hl com">     EF_Event ThisEvent , the event to post to the queue</span>
+<a name="ComSM.c_121"></a><span class="hl lin">  121 </span><span class="hl com"></span>
+<a name="ComSM.c_122"></a><span class="hl lin">  122 </span><span class="hl com"> Returns</span>
+<a name="ComSM.c_123"></a><span class="hl lin">  123 </span><span class="hl com">     boolean False if the Enqueue operation failed, True otherwise</span>
+<a name="ComSM.c_124"></a><span class="hl lin">  124 </span><span class="hl com"></span>
+<a name="ComSM.c_125"></a><span class="hl lin">  125 </span><span class="hl com"> Description</span>
+<a name="ComSM.c_126"></a><span class="hl lin">  126 </span><span class="hl com">     Posts an event to this state machine's queue</span>
+<a name="ComSM.c_127"></a><span class="hl lin">  127 </span><span class="hl com"> Notes</span>
+<a name="ComSM.c_128"></a><span class="hl lin">  128 </span><span class="hl com"></span>
+<a name="ComSM.c_129"></a><span class="hl lin">  129 </span><span class="hl com"> Author</span>
+<a name="ComSM.c_130"></a><span class="hl lin">  130 </span><span class="hl com">     J. Edward Carryer, 10/23/11, 19:25</span>
+<a name="ComSM.c_131"></a><span class="hl lin">  131 </span><span class="hl com">****************************************************************************/</span>
+<a name="ComSM.c_132"></a><span class="hl lin">  132 </span>boolean <span class="hl kwd">PostComSM</span><span class="hl opt">(</span> ES_Event ThisEvent <span class="hl opt">)</span>
+<a name="ComSM.c_133"></a><span class="hl lin">  133 </span><span class="hl opt">{</span>
+<a name="ComSM.c_134"></a><span class="hl lin">  134 </span>    <span class="hl kwa">return</span> <span class="hl kwd">ES_PostToService</span><span class="hl opt">(</span> MyPriority<span class="hl opt">,</span> ThisEvent<span class="hl opt">);</span>
+<a name="ComSM.c_135"></a><span class="hl lin">  135 </span><span class="hl opt">}</span>
+<a name="ComSM.c_136"></a><span class="hl lin">  136 </span>
+<a name="ComSM.c_137"></a><span class="hl lin">  137 </span><span class="hl com">/****************************************************************************</span>
+<a name="ComSM.c_138"></a><span class="hl lin">  138 </span><span class="hl com"> Function</span>
+<a name="ComSM.c_139"></a><span class="hl lin">  139 </span><span class="hl com">    RunTemplateFSM</span>
+<a name="ComSM.c_140"></a><span class="hl lin">  140 </span><span class="hl com"></span>
+<a name="ComSM.c_141"></a><span class="hl lin">  141 </span><span class="hl com"> Parameters</span>
+<a name="ComSM.c_142"></a><span class="hl lin">  142 </span><span class="hl com">   ES_Event : the event to process</span>
+<a name="ComSM.c_143"></a><span class="hl lin">  143 </span><span class="hl com"></span>
+<a name="ComSM.c_144"></a><span class="hl lin">  144 </span><span class="hl com"> Returns</span>
+<a name="ComSM.c_145"></a><span class="hl lin">  145 </span><span class="hl com">   ES_Event, ES_NO_EVENT if no error ES_ERROR otherwise</span>
+<a name="ComSM.c_146"></a><span class="hl lin">  146 </span><span class="hl com"></span>
+<a name="ComSM.c_147"></a><span class="hl lin">  147 </span><span class="hl com"> Description</span>
+<a name="ComSM.c_148"></a><span class="hl lin">  148 </span><span class="hl com">   add your description here</span>
+<a name="ComSM.c_149"></a><span class="hl lin">  149 </span><span class="hl com"> Notes</span>
+<a name="ComSM.c_150"></a><span class="hl lin">  150 </span><span class="hl com">   uses nested switch/case to implement the machine.</span>
+<a name="ComSM.c_151"></a><span class="hl lin">  151 </span><span class="hl com"> Author</span>
+<a name="ComSM.c_152"></a><span class="hl lin">  152 </span><span class="hl com">   J. Edward Carryer, 01/15/12, 15:23</span>
+<a name="ComSM.c_153"></a><span class="hl lin">  153 </span><span class="hl com">****************************************************************************/</span>
+<a name="ComSM.c_154"></a><span class="hl lin">  154 </span>ES_Event <span class="hl kwd">RunComSM</span><span class="hl opt">(</span> ES_Event ThisEvent <span class="hl opt">)</span>
+<a name="ComSM.c_155"></a><span class="hl lin">  155 </span><span class="hl opt">{</span>
+<a name="ComSM.c_156"></a><span class="hl lin">  156 </span>    <span class="hl kwb">static</span> ComState_t NextState<span class="hl opt">;</span> <span class="hl slc">//initiate NextState of motor</span>
+<a name="ComSM.c_157"></a><span class="hl lin">  157 </span>
+<a name="ComSM.c_158"></a><span class="hl lin">  158 </span>    ES_Event ReturnEvent<span class="hl opt">;</span>
+<a name="ComSM.c_159"></a><span class="hl lin">  159 </span>    ReturnEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> ES_NO_EVENT<span class="hl opt">;</span> <span class="hl slc">// assume no errors</span>
+<a name="ComSM.c_160"></a><span class="hl lin">  160 </span>
+<a name="ComSM.c_161"></a><span class="hl lin">  161 </span>    <span class="hl slc">//CurrentState = QueryComSM();</span>
+<a name="ComSM.c_162"></a><span class="hl lin">  162 </span>    <span class="hl slc">//NextState = CurrentState;</span>
+<a name="ComSM.c_163"></a><span class="hl lin">  163 </span>
+<a name="ComSM.c_164"></a><span class="hl lin">  164 </span>    <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> ES_INIT<span class="hl opt">)</span>
+<a name="ComSM.c_165"></a><span class="hl lin">  165 </span>        <span class="hl opt">{</span>
+<a name="ComSM.c_166"></a><span class="hl lin">  166 </span>            NextState <span class="hl opt">=</span> Idle<span class="hl opt">;</span>
+<a name="ComSM.c_167"></a><span class="hl lin">  167 </span>        <span class="hl opt">}</span>
+<a name="ComSM.c_168"></a><span class="hl lin">  168 </span>
+<a name="ComSM.c_169"></a><span class="hl lin">  169 </span>    <span class="hl kwa">switch</span> <span class="hl opt">(</span> CurrentState <span class="hl opt">)</span>
+<a name="ComSM.c_170"></a><span class="hl lin">  170 </span>        <span class="hl opt">{</span>
+<a name="ComSM.c_171"></a><span class="hl lin">  171 </span>        <span class="hl kwa">case</span> Idle<span class="hl opt">:</span>
+<a name="ComSM.c_172"></a><span class="hl lin">  172 </span>            <span class="hl kwa">if</span> <span class="hl opt">((</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> SENDREQ<span class="hl opt">) &amp;&amp; (</span>STROBE<span class="hl opt">==</span><span class="hl num">1</span><span class="hl opt">))</span> <span class="hl slc">//guard: strobe asserted</span>
+<a name="ComSM.c_173"></a><span class="hl lin">  173 </span>                <span class="hl opt">{</span>
+<a name="ComSM.c_174"></a><span class="hl lin">  174 </span>                    NewData <span class="hl opt">=</span> ThisEvent<span class="hl opt">.</span>EventParam<span class="hl opt">;</span> <span class="hl slc">//Param of SENDREQ is the info of the 3bits save it!!</span>
+<a name="ComSM.c_175"></a><span class="hl lin">  175 </span>                    <span class="hl slc">//printf(&quot;IDLE --&gt; WAIT2RECEIVE. newdata = %i\r\n&quot;, NewData);</span>
+<a name="ComSM.c_176"></a><span class="hl lin">  176 </span>                    NextState <span class="hl opt">=</span> Wait2Receive<span class="hl opt">;</span>
+<a name="ComSM.c_177"></a><span class="hl lin">  177 </span>                <span class="hl opt">}</span>
+<a name="ComSM.c_178"></a><span class="hl lin">  178 </span>
+<a name="ComSM.c_179"></a><span class="hl lin">  179 </span>            <span class="hl kwa">if</span> <span class="hl opt">((</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> SENDREQ<span class="hl opt">) &amp;&amp; (</span>STROBE<span class="hl opt">==</span><span class="hl num">0</span><span class="hl opt">))</span> <span class="hl slc">//guard: strobe deasserted</span>
+<a name="ComSM.c_180"></a><span class="hl lin">  180 </span>                <span class="hl opt">{</span>
+<a name="ComSM.c_181"></a><span class="hl lin">  181 </span>                    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;SENDREQ --&gt; WAIT4ACK</span> <span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="ComSM.c_182"></a><span class="hl lin">  182 </span>
+<a name="ComSM.c_183"></a><span class="hl lin">  183 </span>
+<a name="ComSM.c_184"></a><span class="hl lin">  184 </span>                    STROBE_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">// set strobe as output</span>
+<a name="ComSM.c_185"></a><span class="hl lin">  185 </span>                    STROBE <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//set strobe high</span>
+<a name="ComSM.c_186"></a><span class="hl lin">  186 </span>
+<a name="ComSM.c_187"></a><span class="hl lin">  187 </span>                    D0_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert data as output</span>
+<a name="ComSM.c_188"></a><span class="hl lin">  188 </span>                    D1_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<a name="ComSM.c_189"></a><span class="hl lin">  189 </span>                    D2_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<a name="ComSM.c_190"></a><span class="hl lin">  190 </span>
+<a name="ComSM.c_191"></a><span class="hl lin">  191 </span>                    <span class="hl kwa">if</span> <span class="hl opt">((</span>ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">&amp;</span> BIT0HI<span class="hl opt">) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+<a name="ComSM.c_192"></a><span class="hl lin">  192 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_193"></a><span class="hl lin">  193 </span>                            D0 <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert Data0 to T4</span>
+<a name="ComSM.c_194"></a><span class="hl lin">  194 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_195"></a><span class="hl lin">  195 </span>                    <span class="hl kwa">else</span>
+<a name="ComSM.c_196"></a><span class="hl lin">  196 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_197"></a><span class="hl lin">  197 </span>                            D0 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_198"></a><span class="hl lin">  198 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_199"></a><span class="hl lin">  199 </span>                    <span class="hl kwa">if</span> <span class="hl opt">((</span>ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">&amp;</span> BIT1HI<span class="hl opt">) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+<a name="ComSM.c_200"></a><span class="hl lin">  200 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_201"></a><span class="hl lin">  201 </span>                            D1 <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert Data1 to T5</span>
+<a name="ComSM.c_202"></a><span class="hl lin">  202 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_203"></a><span class="hl lin">  203 </span>                    <span class="hl kwa">else</span>
+<a name="ComSM.c_204"></a><span class="hl lin">  204 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_205"></a><span class="hl lin">  205 </span>                            D1 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_206"></a><span class="hl lin">  206 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_207"></a><span class="hl lin">  207 </span>                    <span class="hl kwa">if</span> <span class="hl opt">((</span>ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">&amp;</span> BIT2HI<span class="hl opt">) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+<a name="ComSM.c_208"></a><span class="hl lin">  208 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_209"></a><span class="hl lin">  209 </span>                            D2 <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert Data2 to T6</span>
+<a name="ComSM.c_210"></a><span class="hl lin">  210 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_211"></a><span class="hl lin">  211 </span>                    <span class="hl kwa">else</span>
+<a name="ComSM.c_212"></a><span class="hl lin">  212 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_213"></a><span class="hl lin">  213 </span>                            D2 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_214"></a><span class="hl lin">  214 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_215"></a><span class="hl lin">  215 </span>
+<a name="ComSM.c_216"></a><span class="hl lin">  216 </span>                    Data<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] =</span> D2<span class="hl opt">;</span>
+<a name="ComSM.c_217"></a><span class="hl lin">  217 </span>                    Data<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">] =</span> D1<span class="hl opt">;</span>
+<a name="ComSM.c_218"></a><span class="hl lin">  218 </span>                    Data<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">] =</span> D0<span class="hl opt">;</span><span class="hl slc">//read data into Data  [MSB-&gt;LSB]</span>
+<a name="ComSM.c_219"></a><span class="hl lin">  219 </span>                    Message <span class="hl opt">= ((</span>Data<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">])|(</span>Data<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]&lt;&lt;</span><span class="hl num">1</span><span class="hl opt">)|(</span>Data<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]&lt;&lt;</span><span class="hl num">2</span><span class="hl opt">));</span>
+<a name="ComSM.c_220"></a><span class="hl lin">  220 </span>
+<a name="ComSM.c_221"></a><span class="hl lin">  221 </span>                    <span class="hl kwd">ES_Timer_InitTimer</span><span class="hl opt">(</span>COM_TIMER<span class="hl opt">,</span> TIMERVAL<span class="hl opt">);</span> <span class="hl slc">//start timer</span>
+<a name="ComSM.c_222"></a><span class="hl lin">  222 </span>                    NextState <span class="hl opt">=</span> Wait4Ack<span class="hl opt">;</span>
+<a name="ComSM.c_223"></a><span class="hl lin">  223 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="ComSM.c_224"></a><span class="hl lin">  224 </span>                <span class="hl opt">}</span>
+<a name="ComSM.c_225"></a><span class="hl lin">  225 </span>
+<a name="ComSM.c_226"></a><span class="hl lin">  226 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> STROBE_RISE<span class="hl opt">)</span>
+<a name="ComSM.c_227"></a><span class="hl lin">  227 </span>                <span class="hl opt">{</span>
+<a name="ComSM.c_228"></a><span class="hl lin">  228 </span>
+<a name="ComSM.c_229"></a><span class="hl lin">  229 </span>                    ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="ComSM.c_230"></a><span class="hl lin">  230 </span>                    Data<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] =</span> D2<span class="hl opt">;</span>
+<a name="ComSM.c_231"></a><span class="hl lin">  231 </span>                    Data<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">] =</span> D1<span class="hl opt">;</span>
+<a name="ComSM.c_232"></a><span class="hl lin">  232 </span>                    Data<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">] =</span> D0<span class="hl opt">;</span><span class="hl slc">//read data into Data  [MSB-&gt;LSB]</span>
+<a name="ComSM.c_233"></a><span class="hl lin">  233 </span>                    Message <span class="hl opt">= ((</span>Data<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">])|(</span>Data<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]&lt;&lt;</span><span class="hl num">1</span><span class="hl opt">)|(</span>Data<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]&lt;&lt;</span><span class="hl num">2</span><span class="hl opt">));</span>
+<a name="ComSM.c_234"></a><span class="hl lin">  234 </span>
+<a name="ComSM.c_235"></a><span class="hl lin">  235 </span>                    <span class="hl slc">//Message = ((D0)|(D1&lt;&lt;1)|(D2&lt;&lt;2)); //bitshift D1 left 1, bitshift D2 left 2 times to get (D2)(D1)(D0)</span>
+<a name="ComSM.c_236"></a><span class="hl lin">  236 </span>
+<a name="ComSM.c_237"></a><span class="hl lin">  237 </span>                    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;I got Data %i</span> <span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> Message<span class="hl opt">);</span>
+<a name="ComSM.c_238"></a><span class="hl lin">  238 </span>
+<a name="ComSM.c_239"></a><span class="hl lin">  239 </span>
+<a name="ComSM.c_240"></a><span class="hl lin">  240 </span>                    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> <span class="hl kwd">InterpretMsg</span><span class="hl opt">(</span>Message<span class="hl opt">);</span>
+<a name="ComSM.c_241"></a><span class="hl lin">  241 </span>                    ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> FROMBATMAN<span class="hl opt">;</span>
+<a name="ComSM.c_242"></a><span class="hl lin">  242 </span>                    <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="ComSM.c_243"></a><span class="hl lin">  243 </span>                    <span class="hl kwd">PostTimerSM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="ComSM.c_244"></a><span class="hl lin">  244 </span>
+<a name="ComSM.c_245"></a><span class="hl lin">  245 </span>                    ACK_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//set ACK as output</span>
+<a name="ComSM.c_246"></a><span class="hl lin">  246 </span>                    ACKNOWLEDGE <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//set ACK high</span>
+<a name="ComSM.c_247"></a><span class="hl lin">  247 </span>                    NextState <span class="hl opt">=</span> WaitStrobeFall<span class="hl opt">;</span>
+<a name="ComSM.c_248"></a><span class="hl lin">  248 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="ComSM.c_249"></a><span class="hl lin">  249 </span>                <span class="hl opt">}</span>
+<a name="ComSM.c_250"></a><span class="hl lin">  250 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_251"></a><span class="hl lin">  251 </span>
+<a name="ComSM.c_252"></a><span class="hl lin">  252 </span>        <span class="hl kwa">case</span> WaitStrobeFall<span class="hl opt">:</span>
+<a name="ComSM.c_253"></a><span class="hl lin">  253 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> STROBE_FALL<span class="hl opt">)</span>
+<a name="ComSM.c_254"></a><span class="hl lin">  254 </span>                <span class="hl opt">{</span>
+<a name="ComSM.c_255"></a><span class="hl lin">  255 </span>                    <span class="hl slc">//printf(&quot;WAITSTROBEFALL --&gt; IDLE\r\n&quot;);</span>
+<a name="ComSM.c_256"></a><span class="hl lin">  256 </span>
+<a name="ComSM.c_257"></a><span class="hl lin">  257 </span>                    ACKNOWLEDGE <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//bring ACK low</span>
+<a name="ComSM.c_258"></a><span class="hl lin">  258 </span>                    ACK_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//deassert ACK</span>
+<a name="ComSM.c_259"></a><span class="hl lin">  259 </span>                    NextState <span class="hl opt">=</span> Idle<span class="hl opt">;</span>
+<a name="ComSM.c_260"></a><span class="hl lin">  260 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="ComSM.c_261"></a><span class="hl lin">  261 </span>                <span class="hl opt">}</span>
+<a name="ComSM.c_262"></a><span class="hl lin">  262 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_263"></a><span class="hl lin">  263 </span>
+<a name="ComSM.c_264"></a><span class="hl lin">  264 </span>        <span class="hl kwa">case</span> Wait2Receive<span class="hl opt">:</span>
+<a name="ComSM.c_265"></a><span class="hl lin">  265 </span>            <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;Wait2Receive</span> <span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="ComSM.c_266"></a><span class="hl lin">  266 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> STROBE_RISE<span class="hl opt">)</span>
+<a name="ComSM.c_267"></a><span class="hl lin">  267 </span>                <span class="hl opt">{</span>
+<a name="ComSM.c_268"></a><span class="hl lin">  268 </span>                    ES_Event ThisEvent<span class="hl opt">;</span>
+<a name="ComSM.c_269"></a><span class="hl lin">  269 </span>                    Data<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] =</span> D2<span class="hl opt">;</span>
+<a name="ComSM.c_270"></a><span class="hl lin">  270 </span>                    Data<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">] =</span> D1<span class="hl opt">;</span>
+<a name="ComSM.c_271"></a><span class="hl lin">  271 </span>                    Data<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">] =</span> D0<span class="hl opt">;</span><span class="hl slc">//read data into Data  [MSB-&gt;LSB]</span>
+<a name="ComSM.c_272"></a><span class="hl lin">  272 </span>                    Message <span class="hl opt">= ((</span>Data<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">])|(</span>Data<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]&lt;&lt;</span><span class="hl num">1</span><span class="hl opt">)|(</span>Data<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]&lt;&lt;</span><span class="hl num">2</span><span class="hl opt">));</span>
+<a name="ComSM.c_273"></a><span class="hl lin">  273 </span>                    <span class="hl slc">//Message = ((D0)|(D1&lt;&lt;1)|(D2&lt;&lt;2)); //bitshift D1 left 1, bitshift D2 left 2 times to get (D2)(D1)(D0)</span>
+<a name="ComSM.c_274"></a><span class="hl lin">  274 </span>
+<a name="ComSM.c_275"></a><span class="hl lin">  275 </span>                    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;I got Data %i and posting to Gameplay</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> Message<span class="hl opt">);</span>
+<a name="ComSM.c_276"></a><span class="hl lin">  276 </span>
+<a name="ComSM.c_277"></a><span class="hl lin">  277 </span>
+<a name="ComSM.c_278"></a><span class="hl lin">  278 </span>                    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> <span class="hl kwd">InterpretMsg</span><span class="hl opt">(</span>Message<span class="hl opt">);</span>
+<a name="ComSM.c_279"></a><span class="hl lin">  279 </span>                    ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> FROMBATMAN<span class="hl opt">;</span>
+<a name="ComSM.c_280"></a><span class="hl lin">  280 </span>                    <span class="hl kwd">PostGameplaySM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="ComSM.c_281"></a><span class="hl lin">  281 </span>
+<a name="ComSM.c_282"></a><span class="hl lin">  282 </span>                    ACK_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert ACK</span>
+<a name="ComSM.c_283"></a><span class="hl lin">  283 </span>                    ACKNOWLEDGE <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//bring ACK high</span>
+<a name="ComSM.c_284"></a><span class="hl lin">  284 </span>                    NextState <span class="hl opt">=</span> Wait2Send<span class="hl opt">;</span>
+<a name="ComSM.c_285"></a><span class="hl lin">  285 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="ComSM.c_286"></a><span class="hl lin">  286 </span>                <span class="hl opt">}</span>
+<a name="ComSM.c_287"></a><span class="hl lin">  287 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_288"></a><span class="hl lin">  288 </span>
+<a name="ComSM.c_289"></a><span class="hl lin">  289 </span>        <span class="hl kwa">case</span> Wait2Send<span class="hl opt">:</span>
+<a name="ComSM.c_290"></a><span class="hl lin">  290 </span>            <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;Wait2Send</span> <span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+<a name="ComSM.c_291"></a><span class="hl lin">  291 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> STROBE_FALL<span class="hl opt">)</span>
+<a name="ComSM.c_292"></a><span class="hl lin">  292 </span>                <span class="hl opt">{</span>
+<a name="ComSM.c_293"></a><span class="hl lin">  293 </span>                    <span class="hl slc">//printf(&quot;I'm in wait2send, asserting strobe and data, going to wait4ack \r\n&quot;);</span>
+<a name="ComSM.c_294"></a><span class="hl lin">  294 </span>                    ACKNOWLEDGE <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//deassert ACKKNOWLEDGE</span>
+<a name="ComSM.c_295"></a><span class="hl lin">  295 </span>                    ACK_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//set ACK as input</span>
+<a name="ComSM.c_296"></a><span class="hl lin">  296 </span>
+<a name="ComSM.c_297"></a><span class="hl lin">  297 </span>                    STROBE_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//set strobe as output</span>
+<a name="ComSM.c_298"></a><span class="hl lin">  298 </span>                    STROBE <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//bring strobe high</span>
+<a name="ComSM.c_299"></a><span class="hl lin">  299 </span>
+<a name="ComSM.c_300"></a><span class="hl lin">  300 </span>
+<a name="ComSM.c_301"></a><span class="hl lin">  301 </span>                    D0_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert NewData</span>
+<a name="ComSM.c_302"></a><span class="hl lin">  302 </span>                    D1_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<a name="ComSM.c_303"></a><span class="hl lin">  303 </span>                    D2_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<a name="ComSM.c_304"></a><span class="hl lin">  304 </span>
+<a name="ComSM.c_305"></a><span class="hl lin">  305 </span>
+<a name="ComSM.c_306"></a><span class="hl lin">  306 </span>                    <span class="hl kwa">if</span> <span class="hl opt">((</span>NewData <span class="hl opt">&amp;</span> BIT0HI<span class="hl opt">) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+<a name="ComSM.c_307"></a><span class="hl lin">  307 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_308"></a><span class="hl lin">  308 </span>                            D0 <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert Data0</span>
+<a name="ComSM.c_309"></a><span class="hl lin">  309 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_310"></a><span class="hl lin">  310 </span>                    <span class="hl kwa">else</span>
+<a name="ComSM.c_311"></a><span class="hl lin">  311 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_312"></a><span class="hl lin">  312 </span>                            D0 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_313"></a><span class="hl lin">  313 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_314"></a><span class="hl lin">  314 </span>                    <span class="hl kwa">if</span> <span class="hl opt">((</span>NewData <span class="hl opt">&amp;</span> BIT1HI<span class="hl opt">) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+<a name="ComSM.c_315"></a><span class="hl lin">  315 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_316"></a><span class="hl lin">  316 </span>                            D1 <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert Data1</span>
+<a name="ComSM.c_317"></a><span class="hl lin">  317 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_318"></a><span class="hl lin">  318 </span>                    <span class="hl kwa">else</span>
+<a name="ComSM.c_319"></a><span class="hl lin">  319 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_320"></a><span class="hl lin">  320 </span>                            D1 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_321"></a><span class="hl lin">  321 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_322"></a><span class="hl lin">  322 </span>                    <span class="hl kwa">if</span> <span class="hl opt">((</span>NewData <span class="hl opt">&amp;</span> BIT2HI<span class="hl opt">) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+<a name="ComSM.c_323"></a><span class="hl lin">  323 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_324"></a><span class="hl lin">  324 </span>                            D2 <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//assert Data2</span>
+<a name="ComSM.c_325"></a><span class="hl lin">  325 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_326"></a><span class="hl lin">  326 </span>                    <span class="hl kwa">else</span>
+<a name="ComSM.c_327"></a><span class="hl lin">  327 </span>                        <span class="hl opt">{</span>
+<a name="ComSM.c_328"></a><span class="hl lin">  328 </span>                            D2 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_329"></a><span class="hl lin">  329 </span>                        <span class="hl opt">}</span>
+<a name="ComSM.c_330"></a><span class="hl lin">  330 </span>
+<a name="ComSM.c_331"></a><span class="hl lin">  331 </span>                    <span class="hl kwd">ES_Timer_InitTimer</span><span class="hl opt">(</span>COM_TIMER<span class="hl opt">,</span> TIMERVAL<span class="hl opt">);</span>
+<a name="ComSM.c_332"></a><span class="hl lin">  332 </span>                    NextState <span class="hl opt">=</span> Wait4Ack<span class="hl opt">;</span>
+<a name="ComSM.c_333"></a><span class="hl lin">  333 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="ComSM.c_334"></a><span class="hl lin">  334 </span>                <span class="hl opt">}</span>
+<a name="ComSM.c_335"></a><span class="hl lin">  335 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_336"></a><span class="hl lin">  336 </span>
+<a name="ComSM.c_337"></a><span class="hl lin">  337 </span>        <span class="hl kwa">case</span> Wait4Ack<span class="hl opt">:</span>
+<a name="ComSM.c_338"></a><span class="hl lin">  338 </span>            <span class="hl slc">//printf(&quot;Wait4Ack \r\n&quot;);</span>
+<a name="ComSM.c_339"></a><span class="hl lin">  339 </span>            <span class="hl kwa">if</span> <span class="hl opt">(</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> ACK_RISE<span class="hl opt">)</span>
+<a name="ComSM.c_340"></a><span class="hl lin">  340 </span>                <span class="hl opt">{</span>
+<a name="ComSM.c_341"></a><span class="hl lin">  341 </span>                    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;other person got the data %i</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> Message<span class="hl opt">);</span>
+<a name="ComSM.c_342"></a><span class="hl lin">  342 </span>                    STROBE_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//output</span>
+<a name="ComSM.c_343"></a><span class="hl lin">  343 </span>                    STROBE <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//strobe low</span>
+<a name="ComSM.c_344"></a><span class="hl lin">  344 </span>                    STROBE_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//input</span>
+<a name="ComSM.c_345"></a><span class="hl lin">  345 </span>
+<a name="ComSM.c_346"></a><span class="hl lin">  346 </span>
+<a name="ComSM.c_347"></a><span class="hl lin">  347 </span>
+<a name="ComSM.c_348"></a><span class="hl lin">  348 </span>                    <span class="hl slc">//reset data pins</span>
+<a name="ComSM.c_349"></a><span class="hl lin">  349 </span>                    D0 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_350"></a><span class="hl lin">  350 </span>                    D1 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_351"></a><span class="hl lin">  351 </span>                    D2 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<a name="ComSM.c_352"></a><span class="hl lin">  352 </span>                    <span class="hl slc">//deassert data pins</span>
+<a name="ComSM.c_353"></a><span class="hl lin">  353 </span>                    D0_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//deassert data0</span>
+<a name="ComSM.c_354"></a><span class="hl lin">  354 </span>                    D1_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>  <span class="hl slc">//deassert data1</span>
+<a name="ComSM.c_355"></a><span class="hl lin">  355 </span>                    D2_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span><span class="hl slc">//deassert data2</span>
+<a name="ComSM.c_356"></a><span class="hl lin">  356 </span>
+<a name="ComSM.c_357"></a><span class="hl lin">  357 </span>                    NextState <span class="hl opt">=</span> Idle<span class="hl opt">;</span>
+<a name="ComSM.c_358"></a><span class="hl lin">  358 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="ComSM.c_359"></a><span class="hl lin">  359 </span>                <span class="hl opt">}</span>
+<a name="ComSM.c_360"></a><span class="hl lin">  360 </span>
+<a name="ComSM.c_361"></a><span class="hl lin">  361 </span>            <span class="hl kwa">if</span> <span class="hl opt">((</span>ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">==</span> ES_TIMEOUT<span class="hl opt">) &amp;&amp; (</span>ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">==</span> COM_TIMER<span class="hl opt">))</span>
+<a name="ComSM.c_362"></a><span class="hl lin">  362 </span>                <span class="hl opt">{</span>
+<a name="ComSM.c_363"></a><span class="hl lin">  363 </span>                    <span class="hl slc">//printf(&quot;resend data, also deasserting strobe \r\n&quot;);</span>
+<a name="ComSM.c_364"></a><span class="hl lin">  364 </span>                    STROBE_DIR <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">//output</span>
+<a name="ComSM.c_365"></a><span class="hl lin">  365 </span>                    STROBE <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//strobe low</span>
+<a name="ComSM.c_366"></a><span class="hl lin">  366 </span>                    STROBE_DIR <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">//input</span>
+<a name="ComSM.c_367"></a><span class="hl lin">  367 </span>
+<a name="ComSM.c_368"></a><span class="hl lin">  368 </span>
+<a name="ComSM.c_369"></a><span class="hl lin">  369 </span>                    ThisEvent<span class="hl opt">.</span>EventType <span class="hl opt">=</span> SENDREQ<span class="hl opt">;</span>
+<a name="ComSM.c_370"></a><span class="hl lin">  370 </span>                    ThisEvent<span class="hl opt">.</span>EventParam <span class="hl opt">=</span> Message<span class="hl opt">;</span>  <span class="hl slc">//resend message that was posted</span>
+<a name="ComSM.c_371"></a><span class="hl lin">  371 </span>                    <span class="hl kwd">PostComSM</span><span class="hl opt">(</span>ThisEvent<span class="hl opt">);</span>
+<a name="ComSM.c_372"></a><span class="hl lin">  372 </span>
+<a name="ComSM.c_373"></a><span class="hl lin">  373 </span>                    NextState <span class="hl opt">=</span> Idle<span class="hl opt">;</span>
+<a name="ComSM.c_374"></a><span class="hl lin">  374 </span>                    <span class="hl slc">//return ReturnEvent;</span>
+<a name="ComSM.c_375"></a><span class="hl lin">  375 </span>                <span class="hl opt">}</span>
+<a name="ComSM.c_376"></a><span class="hl lin">  376 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_377"></a><span class="hl lin">  377 </span>        <span class="hl opt">}</span>
+<a name="ComSM.c_378"></a><span class="hl lin">  378 </span>    CurrentState <span class="hl opt">=</span> NextState<span class="hl opt">;</span>
+<a name="ComSM.c_379"></a><span class="hl lin">  379 </span>    <span class="hl kwa">return</span> ReturnEvent<span class="hl opt">;</span>
+<a name="ComSM.c_380"></a><span class="hl lin">  380 </span><span class="hl opt">}</span>
+<a name="ComSM.c_381"></a><span class="hl lin">  381 </span>
+<a name="ComSM.c_382"></a><span class="hl lin">  382 </span><span class="hl com">/****************************************************************************</span>
+<a name="ComSM.c_383"></a><span class="hl lin">  383 </span><span class="hl com"> Function</span>
+<a name="ComSM.c_384"></a><span class="hl lin">  384 </span><span class="hl com">     QueryTemplateSM</span>
+<a name="ComSM.c_385"></a><span class="hl lin">  385 </span><span class="hl com"></span>
+<a name="ComSM.c_386"></a><span class="hl lin">  386 </span><span class="hl com"> Parameters</span>
+<a name="ComSM.c_387"></a><span class="hl lin">  387 </span><span class="hl com">     None</span>
+<a name="ComSM.c_388"></a><span class="hl lin">  388 </span><span class="hl com"></span>
+<a name="ComSM.c_389"></a><span class="hl lin">  389 </span><span class="hl com"> Returns</span>
+<a name="ComSM.c_390"></a><span class="hl lin">  390 </span><span class="hl com">     TemplateState_t The current state of the Template state machine</span>
+<a name="ComSM.c_391"></a><span class="hl lin">  391 </span><span class="hl com"></span>
+<a name="ComSM.c_392"></a><span class="hl lin">  392 </span><span class="hl com"> Description</span>
+<a name="ComSM.c_393"></a><span class="hl lin">  393 </span><span class="hl com">     returns the current state of the Template state machine</span>
+<a name="ComSM.c_394"></a><span class="hl lin">  394 </span><span class="hl com"> Notes</span>
+<a name="ComSM.c_395"></a><span class="hl lin">  395 </span><span class="hl com"></span>
+<a name="ComSM.c_396"></a><span class="hl lin">  396 </span><span class="hl com"> Author</span>
+<a name="ComSM.c_397"></a><span class="hl lin">  397 </span><span class="hl com">     J. Edward Carryer, 10/23/11, 19:21</span>
+<a name="ComSM.c_398"></a><span class="hl lin">  398 </span><span class="hl com">************************************************************************/</span>
+<a name="ComSM.c_399"></a><span class="hl lin">  399 </span>ComState_t <span class="hl kwd">QueryComSM</span> <span class="hl opt">(</span> <span class="hl kwb">void</span> <span class="hl opt">)</span>
+<a name="ComSM.c_400"></a><span class="hl lin">  400 </span><span class="hl opt">{</span>
+<a name="ComSM.c_401"></a><span class="hl lin">  401 </span>    <span class="hl kwa">return</span><span class="hl opt">(</span>CurrentState<span class="hl opt">);</span>
+<a name="ComSM.c_402"></a><span class="hl lin">  402 </span><span class="hl opt">}</span>
+<a name="ComSM.c_403"></a><span class="hl lin">  403 </span>
+<a name="ComSM.c_404"></a><span class="hl lin">  404 </span><span class="hl com">/***************************************************************************</span>
+<a name="ComSM.c_405"></a><span class="hl lin">  405 </span><span class="hl com"> private functions</span>
+<a name="ComSM.c_406"></a><span class="hl lin">  406 </span><span class="hl com"> ***************************************************************************/</span>
+<a name="ComSM.c_407"></a><span class="hl lin">  407 </span>
+<a name="ComSM.c_408"></a><span class="hl lin">  408 </span>
+<a name="ComSM.c_409"></a><span class="hl lin">  409 </span>ES_EventTyp_t <span class="hl kwd">InterpretMsg</span><span class="hl opt">(</span><span class="hl kwb">unsigned char</span> Message<span class="hl opt">)</span>
+<a name="ComSM.c_410"></a><span class="hl lin">  410 </span><span class="hl opt">{</span>
+<a name="ComSM.c_411"></a><span class="hl lin">  411 </span>
+<a name="ComSM.c_412"></a><span class="hl lin">  412 </span>    <span class="hl kwa">switch</span> <span class="hl opt">(</span>Message<span class="hl opt">)</span>
+<a name="ComSM.c_413"></a><span class="hl lin">  413 </span>        <span class="hl opt">{</span>
+<a name="ComSM.c_414"></a><span class="hl lin">  414 </span>            <span class="hl com">/*</span>
+<a name="ComSM.c_415"></a><span class="hl lin">  415 </span><span class="hl com">            Batman Messages</span>
+<a name="ComSM.c_416"></a><span class="hl lin">  416 </span><span class="hl com"></span>
+<a name="ComSM.c_417"></a><span class="hl lin">  417 </span><span class="hl com">            case JokerReady :</span>
+<a name="ComSM.c_418"></a><span class="hl lin">  418 </span><span class="hl com">                return JOKERREADY;</span>
+<a name="ComSM.c_419"></a><span class="hl lin">  419 </span><span class="hl com">            break;</span>
+<a name="ComSM.c_420"></a><span class="hl lin">  420 </span><span class="hl com"></span>
+<a name="ComSM.c_421"></a><span class="hl lin">  421 </span><span class="hl com">            case JokerWin :</span>
+<a name="ComSM.c_422"></a><span class="hl lin">  422 </span><span class="hl com">               return JOKERWIN;</span>
+<a name="ComSM.c_423"></a><span class="hl lin">  423 </span><span class="hl com">            break;</span>
+<a name="ComSM.c_424"></a><span class="hl lin">  424 </span><span class="hl com"></span>
+<a name="ComSM.c_425"></a><span class="hl lin">  425 </span><span class="hl com">            case JokerLose :</span>
+<a name="ComSM.c_426"></a><span class="hl lin">  426 </span><span class="hl com">               return JOKERLOSE;</span>
+<a name="ComSM.c_427"></a><span class="hl lin">  427 </span><span class="hl com">            break;</span>
+<a name="ComSM.c_428"></a><span class="hl lin">  428 </span><span class="hl com"></span>
+<a name="ComSM.c_429"></a><span class="hl lin">  429 </span><span class="hl com">            case OilSlick :</span>
+<a name="ComSM.c_430"></a><span class="hl lin">  430 </span><span class="hl com">               return OILSLICK;</span>
+<a name="ComSM.c_431"></a><span class="hl lin">  431 </span><span class="hl com">            break;</span>
+<a name="ComSM.c_432"></a><span class="hl lin">  432 </span><span class="hl com"></span>
+<a name="ComSM.c_433"></a><span class="hl lin">  433 </span><span class="hl com">            case OilIndicate :</span>
+<a name="ComSM.c_434"></a><span class="hl lin">  434 </span><span class="hl com">               return OILINDICATE;</span>
+<a name="ComSM.c_435"></a><span class="hl lin">  435 </span><span class="hl com">            break;</span>
+<a name="ComSM.c_436"></a><span class="hl lin">  436 </span><span class="hl com"></span>
+<a name="ComSM.c_437"></a><span class="hl lin">  437 </span><span class="hl com">            */</span>
+<a name="ComSM.c_438"></a><span class="hl lin">  438 </span>
+<a name="ComSM.c_439"></a><span class="hl lin">  439 </span>        <span class="hl kwa">case</span> J_GameActive <span class="hl opt">:</span>
+<a name="ComSM.c_440"></a><span class="hl lin">  440 </span>            <span class="hl kwa">return</span> GAME_ACTIVE<span class="hl opt">;</span>
+<a name="ComSM.c_441"></a><span class="hl lin">  441 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_442"></a><span class="hl lin">  442 </span>
+<a name="ComSM.c_443"></a><span class="hl lin">  443 </span>        <span class="hl kwa">case</span> J_GameEnd <span class="hl opt">:</span>
+<a name="ComSM.c_444"></a><span class="hl lin">  444 </span>            <span class="hl kwa">return</span> GAME_END<span class="hl opt">;</span>
+<a name="ComSM.c_445"></a><span class="hl lin">  445 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_446"></a><span class="hl lin">  446 </span>
+<a name="ComSM.c_447"></a><span class="hl lin">  447 </span>        <span class="hl kwa">case</span> J_OilSlick <span class="hl opt">:</span>
+<a name="ComSM.c_448"></a><span class="hl lin">  448 </span>            <span class="hl kwa">return</span> OILSLICK<span class="hl opt">;</span>
+<a name="ComSM.c_449"></a><span class="hl lin">  449 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_450"></a><span class="hl lin">  450 </span>
+<a name="ComSM.c_451"></a><span class="hl lin">  451 </span>        <span class="hl kwa">case</span> J_OilIndicate <span class="hl opt">:</span>
+<a name="ComSM.c_452"></a><span class="hl lin">  452 </span>            <span class="hl kwa">return</span> OILINDICATE<span class="hl opt">;</span>
+<a name="ComSM.c_453"></a><span class="hl lin">  453 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_454"></a><span class="hl lin">  454 </span>
+<a name="ComSM.c_455"></a><span class="hl lin">  455 </span>        <span class="hl kwa">case</span> J_GameStart <span class="hl opt">:</span>
+<a name="ComSM.c_456"></a><span class="hl lin">  456 </span>            <span class="hl kwa">return</span> GAME_START<span class="hl opt">;</span>
+<a name="ComSM.c_457"></a><span class="hl lin">  457 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_458"></a><span class="hl lin">  458 </span>
+<a name="ComSM.c_459"></a><span class="hl lin">  459 </span>        <span class="hl kwa">case</span> J_BatmanReady <span class="hl opt">:</span>
+<a name="ComSM.c_460"></a><span class="hl lin">  460 </span>            <span class="hl kwa">return</span> BATMANREADY<span class="hl opt">;</span>
+<a name="ComSM.c_461"></a><span class="hl lin">  461 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_462"></a><span class="hl lin">  462 </span>
+<a name="ComSM.c_463"></a><span class="hl lin">  463 </span>        <span class="hl kwa">case</span> J_BatmanWin <span class="hl opt">:</span>
+<a name="ComSM.c_464"></a><span class="hl lin">  464 </span>            <span class="hl kwa">return</span> BATMANWIN<span class="hl opt">;</span>
+<a name="ComSM.c_465"></a><span class="hl lin">  465 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_466"></a><span class="hl lin">  466 </span>
+<a name="ComSM.c_467"></a><span class="hl lin">  467 </span>        <span class="hl kwa">case</span> J_BatmanLose <span class="hl opt">:</span>
+<a name="ComSM.c_468"></a><span class="hl lin">  468 </span>            <span class="hl kwa">return</span> BATMANLOSE<span class="hl opt">;</span>
+<a name="ComSM.c_469"></a><span class="hl lin">  469 </span>            <span class="hl kwa">break</span><span class="hl opt">;</span>
+<a name="ComSM.c_470"></a><span class="hl lin">  470 </span>
+<a name="ComSM.c_471"></a><span class="hl lin">  471 </span>            <span class="hl slc">///ADD AS NECESSARY</span>
+<a name="ComSM.c_472"></a><span class="hl lin">  472 </span>
+<a name="ComSM.c_473"></a><span class="hl lin">  473 </span>        <span class="hl opt">}</span>
+<a name="ComSM.c_474"></a><span class="hl lin">  474 </span>
+<a name="ComSM.c_475"></a><span class="hl lin">  475 </span><span class="hl opt">}</span>
+<a name="ComSM.c_476"></a><span class="hl lin">  476 </span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->
